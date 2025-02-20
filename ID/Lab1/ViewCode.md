@@ -108,7 +108,7 @@ SELECT * FROM dual;
   
 ```sql
 INSERT ALL
-    INTO TEACHERS VALUES(10101, 'CS-101', 1, 'Fall', 2009)
+    INTO TEACHES VALUES(10101, 'CS-101', 1, 'Fall', 2009)
     INTO Teaches VALUES(10101, 'CS-315', 1, 'Spring', 2010)
     INTO Teaches VALUES(10101, 'CS-347', 1, 'Fall', 2009)
     INTO Teaches VALUES(12121, 'FIN-201', 1, 'Spring', 2010)
