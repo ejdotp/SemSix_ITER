@@ -35,8 +35,10 @@ int main(){
 	spriteCloud1.setTexture(textureCloud);                       //
 	spriteCloud1.setPosition(0,0);                               //
 	spriteCloud2.setTexture(textureCloud);                       //
+	spriteCloud2.setScale(0.75, 0.75);
 	spriteCloud2.setPosition(0,150);                             //
 	spriteCloud3.setTexture(textureCloud);                       //
+	spriteCloud3.setScale(0.89, 0.89);
 	spriteCloud3.setPosition(0,300);                             //
 	
 	while(window.isOpen())
