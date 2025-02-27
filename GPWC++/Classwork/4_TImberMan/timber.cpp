@@ -17,6 +17,28 @@ int main(){
 	spriteBackground.setTexture(textureBackground);              //pastes it on the bg like a sticker
 	spriteBackground.setPosition(0,0);
 	
+	Texture textureTree;                                         //
+	textureTree.loadFromFile("graphics/tree.png");               // adding tree onto bg
+	Sprite spriteTree;                                           //
+	spriteTree.setTexture(textureTree);                          //
+	spriteTree.setPosition(810,0);                               //
+	
+	Texture textureBee;                                          //
+	textureBee.loadFromFile("graphics/bee.png");                 // adding bee
+	Sprite spriteBee;                                            //
+	spriteBee.setTexture(textureBee);                            //
+	spriteBee.setPosition(0,800);                                //
+	
+	Texture textureCloud;                                        //
+	textureCloud.loadFromFile("graphics/cloud.png");             // cloud texture
+	Sprite spriteCloud1, spriteCloud2, spriteCloud3;             // 3 cloud objects using same texture
+	spriteCloud1.setTexture(textureCloud);                       //
+	spriteCloud1.setPosition(0,0);                               //
+	spriteCloud2.setTexture(textureCloud);                       //
+	spriteCloud2.setPosition(0,150);                             //
+	spriteCloud3.setTexture(textureCloud);                       //
+	spriteCloud3.setPosition(0,300);                             //
+	
 	while(window.isOpen())
 	{
 	
@@ -35,7 +57,12 @@ int main(){
 		}                                                        //
 		
 		window.clear();                                          //
-	    window.draw(spriteBackground);                           // Draws Everything
+	    window.draw(spriteBackground);                           // Draws bg
+	    window.draw(spriteCloud1);                               //
+	    window.draw(spriteCloud2);                               // Draws Clouds
+	    window.draw(spriteCloud3);                               //
+	    window.draw(spriteTree);                                 // Draws tree
+	    window.draw(spriteBee);                                  // Draws bee
 		window.display();                                        //
 	}
 	
