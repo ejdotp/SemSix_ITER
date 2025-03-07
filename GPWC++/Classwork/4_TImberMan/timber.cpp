@@ -52,8 +52,28 @@ int main()
 	bool c3Active = false; // cloud-3 movement flag
 	float c3Speed = 0.0f;  // cloud-3 initial speed
 
-	Clock clock;
-	int count = 0;
+	Clock clock; // initializes a game clock
+
+	RectangleShape timeBar;											 // Time Bar element
+	RectangleShape timeBarOutline;									 // Outline for timebar
+																	 //
+	float timeBarStartWidth = 400;									 // define time bar initial dimensions
+	float timeBarHieght = 60;										 //
+																	 //
+	timeBar.setFillColor(Color::Red);								 //
+	timeBar.setSize(Vector2f(timeBarStartWidth, timeBarHieght));	 // design time bar
+	timeBar.setPosition(((1920 / 2) - 200), 980);					 //
+																	 //
+	timeBarOutline.setFillColor(Color::Black);						 //
+	timeBarOutline.setSize(Vector2f(404, 64));						 // design timebar outline
+	timeBarOutline.setPosition(((1920 / 2) - 202), 978);			 //
+																	 //
+	Time gameTimeTotal;												 //
+	float timeRemaining = 6.0f;										 //  every second 66.6 pixels reduced.
+	float timeBarWidthPerSecond = timeBarStartWidth / timeRemaining; //
+
+	bool paused = true;
+	int score = 0;
 
 	while (window.isOpen())
 	{
@@ -72,13 +92,25 @@ int main()
 			window.close();							  //
 		} //
 
-		Time dt = clock.restart();
+		if (Keyboard::isKeyPressed(Keyboard::Return)) //
+		{											  // exits games on clicking escape
+			paused = false;							  //
+			score = 0;
+		} //
+
+		Time dt = clock.restart(); // clock dependent algos come below this line.
+
+		if (!paused)
+		{
+			timeRemaining -= dt.asSeconds(); // time decreases.
+			timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
+		}
 
 		if (!beeActive)
 		{
 			srand((int)time(0));
 			beeSpeed = (rand() % 200) + 200;	 // ( 0 to 199) + 200 = ( 200 to 399 ) -> sets a random speed for bee
-			float height = (rand() % 500) + 500; // sets a random height for bee within 500 to 999
+			float height = (rand() % 500) + 300; // sets a random height for bee within 500 to 999
 			spriteBee.setPosition(2000, height);
 			beeActive = true; // make the bee move by sending to else part
 		}
@@ -97,7 +129,7 @@ int main()
 		// moving cloud 1
 		if (!c1Active)
 		{
-			srand((int)time(0) * 10);
+			srand((int)time(0) * 10); // multiplicator allows generation to be random even during initial calls.
 			c1Speed = (rand() % 120) + 60;
 			float height = (rand() % 300);
 			spriteCloud1.setPosition(-300, height);
@@ -158,7 +190,9 @@ int main()
 		window.draw(spriteCloud1);	   //
 		window.draw(spriteTree);	   // Draws tree
 		window.draw(spriteBee);		   // Draws bee
-		window.display();			   //
+		window.draw(timeBarOutline);
+		window.draw(timeBar); // Draws timebar
+		window.display();	  //
 	}
 
 	return 0;
