@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Specific Ignorance
+timber
+GPWC++/Classwork/SFML-3.0.0
