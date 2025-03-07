@@ -29,9 +29,9 @@ int main()
 	Sprite spriteBee;							 //
 	spriteBee.setTexture(textureBee);			 //
 	spriteBee.setPosition(0, 800);				 //
-
-	bool beeActive = false; // bee movement flag
-	float beeSpeed = 0.0f;	// bee initial speed
+												 //
+	bool beeActive = false;						 // bee movement flag
+	float beeSpeed = 0.0f;						 // bee initial speed
 
 	Texture textureCloud;							 //
 	textureCloud.loadFromFile("graphics/cloud.png"); // cloud texture
@@ -39,11 +39,11 @@ int main()
 	spriteCloud1.setTexture(textureCloud);			 //
 	spriteCloud1.setPosition(0, 0);					 //
 	spriteCloud2.setTexture(textureCloud);			 //
-	spriteCloud2.setScale(0.6, 0.6);
-	spriteCloud2.setPosition(0, 150);	   //
-	spriteCloud3.setTexture(textureCloud); //
-	spriteCloud3.setScale(0.89, 0.89);
-	spriteCloud3.setPosition(0, 300); //
+	spriteCloud2.setScale(0.6, 0.6);				 //
+	spriteCloud2.setPosition(0, 150);				 //
+	spriteCloud3.setTexture(textureCloud);			 //
+	spriteCloud3.setScale(0.89, 0.89);				 //
+	spriteCloud3.setPosition(0, 300);				 //
 
 	bool c1Active = false; // cloud-1 movement flag
 	float c1Speed = 0.0f;  // cloud-1 initial speed
@@ -54,27 +54,59 @@ int main()
 
 	Clock clock; // initializes a game clock
 
-	RectangleShape timeBar;											 // Time Bar element
-	RectangleShape timeBarOutline;									 // Outline for timebar
+	RectangleShape timeBar;											 // Time Bar element:
+	RectangleShape timeBarOutline;									 // 	Outline for timebar
 																	 //
-	float timeBarStartWidth = 400;									 // define time bar initial dimensions
+	float timeBarStartWidth = 400;									 // 	define time bar initial dimensions
 	float timeBarHieght = 60;										 //
 																	 //
 	timeBar.setFillColor(Color::Red);								 //
-	timeBar.setSize(Vector2f(timeBarStartWidth, timeBarHieght));	 // design time bar
+	timeBar.setSize(Vector2f(timeBarStartWidth, timeBarHieght));	 // 	design time bar
 	timeBar.setPosition(((1920 / 2) - 200), 980);					 //
 																	 //
 	timeBarOutline.setFillColor(Color::Black);						 //
-	timeBarOutline.setSize(Vector2f(404, 64));						 // design timebar outline
+	timeBarOutline.setSize(Vector2f(404, 64));						 // 	design timebar outline
 	timeBarOutline.setPosition(((1920 / 2) - 202), 978);			 //
 																	 //
 	Time gameTimeTotal;												 //
-	float timeRemaining = 6.0f;										 //  every second 66.6 pixels reduced.
+	float timeRemaining = 6.0f;										 // 	every second 66.6 pixels reduced.
 	float timeBarWidthPerSecond = timeBarStartWidth / timeRemaining; //
 
-	bool paused = true;
-	int score = 0;
+	bool paused = true; // 	for time bar management
+	int score = 0;		//
 
+	// Text STuff:
+	Text messageText;
+	Text scoreText;
+	Text scoreTextO;
+
+	Font font;
+	font.loadFromFile("font/KOMIKAP_.ttf");
+	messageText.setFont(font);
+	scoreText.setFont(font);
+	scoreTextO.setFont(font);
+
+	messageText.setString("Press Enter to start...");
+	scoreText.setString("Score = 0");
+	scoreTextO.setString("Score = 0");
+
+	messageText.setCharacterSize(75);
+	scoreText.setCharacterSize(100);
+	scoreTextO.setCharacterSize(100);
+
+	messageText.setFillColor(Color::White);
+	scoreText.setFillColor(Color::White);
+	scoreTextO.setFillColor(Color::Black);
+
+	FloatRect textRect = messageText.getLocalBounds();
+	messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+	// above two lines are required to bring the text to centre
+	messageText.setPosition(960, 540);
+
+	scoreText.setPosition(20, 20);
+	scoreTextO.setPosition(22, 22);
+
+	// Gaming Loop:
 	while (window.isOpen())
 	{
 
@@ -93,9 +125,9 @@ int main()
 		} //
 
 		if (Keyboard::isKeyPressed(Keyboard::Return)) //
-		{											  // exits games on clicking escape
+		{											  // decreases remaining time when clicker "enter"
 			paused = false;							  //
-			score = 0;
+			score = 0;								  //
 		} //
 
 		Time dt = clock.restart(); // clock dependent algos come below this line.
@@ -104,6 +136,18 @@ int main()
 		{
 			timeRemaining -= dt.asSeconds(); // time decreases.
 			timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
+
+			if (Keyboard::isKeyPressed(Keyboard::Space))
+			{
+				timeRemaining += 2.0f * dt.asSeconds();
+
+				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
+			}
+
+			if (timeRemaining <= 0.0f)
+			{
+				paused = true;
+			}
 		}
 
 		if (!beeActive)
@@ -183,16 +227,19 @@ int main()
 			}
 		}
 
-		window.clear();				   //
+		window.clear();				   // Blank Canvas
 		window.draw(spriteBackground); // Draws bg
 		window.draw(spriteCloud2);	   //
 		window.draw(spriteCloud3);	   // Draws Clouds
 		window.draw(spriteCloud1);	   //
 		window.draw(spriteTree);	   // Draws tree
 		window.draw(spriteBee);		   // Draws bee
-		window.draw(timeBarOutline);
-		window.draw(timeBar); // Draws timebar
-		window.display();	  //
+		window.draw(timeBarOutline);   // Draws timebar outline
+		window.draw(timeBar);		   // Draws timebar
+		window.draw(messageText);
+		window.draw(scoreTextO);
+		window.draw(scoreText);
+		window.display(); //
 	}
 
 	return 0;
