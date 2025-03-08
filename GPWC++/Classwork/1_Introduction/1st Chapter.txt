@@ -2,7 +2,7 @@
 
 What is C++?
 ------------
-C++ is an object-oriented programming language. It was developed by Bjarne Stroustrup at AT&T Bell Laboratories in Murray Hill, New Jersey, USA, in the early 1980’s.
+C++ is an object-oriented programming language. It was developed by Bjarne Stroustrup at AT&T Bell Laboratories in Murray Hill, New Jersey, USA, in the early 1980"s.
 
 C++ is a superset of C.
 
@@ -65,11 +65,11 @@ The client-server model : This approach is based on the concept of client-server
 
 Q1. Find errors, if any, in the following C++ statements.
 --------------------------------------------------------
-(a) cout << “x=“ x;
+(a) cout << "x=" x;
 (b) m = 5; // n = 10; // s = m + n;
 (c) cin >>x; >>y;
-(d) cout << \n “Name:” << name;
-(e) cout <<“Enter value:”; cin >> x;
+(d) cout << \n "Name:" << name;
+(e) cout <<"Enter value:"; cin >> x;
 (f) /*Addition*/ z = x + y;
 
 Q2. Write a C++ program that will ask for a temperature in Fahrenheit and display it in Celsius.
@@ -81,11 +81,11 @@ Q2. Write a C++ program that will ask for a temperature in Fahrenheit and displa
 Tokens, Expressions and Control Structures
 ---------------------------------------------------------
 C++ has the following tokens:
-• Keywords : bool, namespace, mutable
-• Identifiers
-• Constants
-• Strings
-• Operators
+" Keywords : bool, namespace, mutable
+" Identifiers
+" Constants
+" Strings
+" Operators
 
 C++ keywords
  
@@ -223,7 +223,7 @@ C++ assigns additional meaning to the symbol &. Here, & is not an address operat
 
  int n[10];
  int & x = n[10];     // x is alias for n[10]
- char & a = '\n’;     // initialize reference to a literal
+ char & a = '\n";     // initialize reference to a literal
 
 The variable x is an alternative to the array element n[10]. The variable a is initialized to the newline constant. This creates a reference to the otherwise unknown location where the newline constant \n is stored.
 
@@ -269,14 +269,14 @@ int main()
 	 {
 	 int k = m;
 	 int m = 30;                     // m declared again
- 	cout << “we are in inner block \n”;
- 	cout << “k = “ << k << “\n”;        // 20
- 	cout << “m = “ << m << “\n”;    // 30
- 	cout << “::m = “ << ::m << “\n”;   // 10
+ 	cout << "we are in inner block \n";
+ 	cout << "k = " << k << "\n";        // 20
+ 	cout << "m = " << m << "\n";    // 30
+ 	cout << "::m = " << ::m << "\n";   // 10
  	}
- 	cout << “\nWe are in outer block \n”;
-	 cout << “m = “ << m << “\n”;       //  20
- 	cout << “::m = “ << ::m << “\n”;   // 10
+ 	cout << "\nWe are in outer block \n";
+	 cout << "m = " << m << "\n";       //  20
+ 	cout << "::m = " << ::m << "\n";   // 10
  	return 0;
 }
 
@@ -378,7 +378,7 @@ int circleArea(int &r) {
 
 
 Q2. An election is contested by five candidates. The candidates are numbered 1 to 5 and the voting is done by marking the candidate number on the ballot paper. 
-Write a C ++ program to read the ballots and count the votes cast for each candidate using an array variable count. In case, a number read is outside the range 1 to 5, the ballot should be considered as a ‘spoilt ballot’, and the program should also count the number of spoilt ballots.
+Write a C ++ program to read the ballots and count the votes cast for each candidate using an array variable count. In case, a number read is outside the range 1 to 5, the ballot should be considered as a "spoilt ballot", and the program should also count the number of spoilt ballots.
  
 Sample Output : 
                                               Election Voting System
