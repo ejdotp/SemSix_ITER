@@ -1,6 +1,16 @@
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
+void updateBranches(int seed);
+
+const int NUM_BRANCHES = 6;
+Sprite branches[NUM_BRANCHES];
+
+enum class side{ LEFT, RIGHT, NONE };
+
+side branchPositions[NUM_BRANCHES];
+
+
 int main()
 {
 
@@ -105,6 +115,18 @@ int main()
 
 	scoreText.setPosition(20, 20);
 	scoreTextO.setPosition(22, 22);
+	
+
+	Texture textureBranch;
+	textureBranch.loadFromFile("graphics/branch.png");
+	
+	for( int i = 0; i < NUM_BRANCHES; i++){
+		branches[i].setTexture(textureBranch);
+		branches[i].setPosition(-2000, -2000); //(1110, 200) with origin (0, 0) is the ideal position
+		branches[i].setOrigin(220, 20);
+	}
+	
+	
 
 	// Gaming Loop:
 	while (window.isOpen())
@@ -128,6 +150,12 @@ int main()
 		{											  // decreases remaining time when clicker "enter"
 			paused = false;							  //
 			score = 0;								  //
+			timeRemaining = 6;
+
+			//Make all branches disappear
+			for (int i = 1; i < NUM_BRANCHES; i++) {
+				branchPositions[i] = side::NONE;
+			}
 		} //
 
 		Time dt = clock.restart(); // clock dependent algos come below this line.
@@ -147,100 +175,168 @@ int main()
 			if (timeRemaining <= 0.0f)
 			{
 				paused = true;
+				messageText.setString("GAME OVER!!!");
+				messageText.setFillColor(Color::Red);
+				messageText.setCharacterSize(130);
+				FloatRect textRect = messageText.getLocalBounds();
+				messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+				messageText.setPosition(960, 540);
 			}
-		}
+		
 
-		if (!beeActive)
-		{
-			srand((int)time(0));
-			beeSpeed = (rand() % 200) + 200;	 // ( 0 to 199) + 200 = ( 200 to 399 ) -> sets a random speed for bee
-			float height = (rand() % 500) + 300; // sets a random height for bee within 500 to 999
-			spriteBee.setPosition(2000, height);
-			beeActive = true; // make the bee move by sending to else part
-		}
-		else
-		{
-			spriteBee.setPosition(spriteBee.getPosition().x - (beeSpeed * dt.asSeconds()), spriteBee.getPosition().y);
-			// get current position ie (2000, random height) and decrease the x value with clock time to move bee from right to left
-			// dt.asSeconds() provides frame rate independence, otherwise object would move faster with higher framerate.
-
-			if (spriteBee.getPosition().x < -100)
+			if (!beeActive)
 			{
-				beeActive = false;
+				srand((int)time(0));
+				beeSpeed = (rand() % 200) + 200;	 // ( 0 to 199) + 200 = ( 200 to 399 ) -> sets a random speed for bee
+				float height = (rand() % 500) + 300; // sets a random height for bee within 500 to 999
+				spriteBee.setPosition(2000, height);
+				beeActive = true; // make the bee move by sending to else part
 			}
-		}
-
-		// moving cloud 1
-		if (!c1Active)
-		{
-			srand((int)time(0) * 10); // multiplicator allows generation to be random even during initial calls.
-			c1Speed = (rand() % 120) + 60;
-			float height = (rand() % 300);
-			spriteCloud1.setPosition(-300, height);
-			c1Active = true;
-		}
-		else
-		{
-			spriteCloud1.setPosition(spriteCloud1.getPosition().x + (c1Speed * dt.asSeconds()), spriteCloud1.getPosition().y);
-
-			if (spriteCloud1.getPosition().x > 1920)
+			else
 			{
-				c1Active = false;
+				spriteBee.setPosition(spriteBee.getPosition().x - (beeSpeed * dt.asSeconds()), spriteBee.getPosition().y);
+				// get current position ie (2000, random height) and decrease the x value with clock time to move bee from right to left
+				// dt.asSeconds() provides frame rate independence, otherwise object would move faster with higher framerate.
+
+				if (spriteBee.getPosition().x < -100)
+				{
+					beeActive = false;
+				}
 			}
-		}
 
-		// moving cloud 2
-		if (!c2Active)
-		{
-			srand((int)time(0) * 10);
-			c2Speed = (rand() % 80) + 20;
-			float height = (rand() % 200);
-			spriteCloud2.setPosition(-200, height);
-			c2Active = true;
-		}
-		else
-		{
-			spriteCloud2.setPosition(spriteCloud2.getPosition().x + (c2Speed * dt.asSeconds()), spriteCloud2.getPosition().y);
-
-			if (spriteCloud2.getPosition().x > 1920)
+			// moving cloud 1
+			if (!c1Active)
 			{
-				c2Active = false;
+				srand((int)time(0) * 10); // multiplicator allows generation to be random even during initial calls.
+				c1Speed = (rand() % 120) + 60;
+				float height = (rand() % 300);
+				spriteCloud1.setPosition(-300, height);
+				c1Active = true;
 			}
-		}
-
-		// moving cloud 3
-		if (!c3Active)
-		{
-			srand((int)time(0) * 10);
-			c3Speed = (rand() % 100) + 50;
-			float height = (rand() % 300);
-			spriteCloud3.setPosition(-250, height);
-			c3Active = true;
-		}
-		else
-		{
-			spriteCloud3.setPosition(spriteCloud3.getPosition().x + (c3Speed * dt.asSeconds()), spriteCloud3.getPosition().y);
-
-			if (spriteCloud3.getPosition().x > 1920)
+			else
 			{
-				c3Active = false;
+				spriteCloud1.setPosition(spriteCloud1.getPosition().x + (c1Speed * dt.asSeconds()), spriteCloud1.getPosition().y);
+
+				if (spriteCloud1.getPosition().x > 1920)
+				{
+					c1Active = false;
+				}
 			}
-		}
+	
+			// moving cloud 2
+			if (!c2Active)
+			{
+				srand((int)time(0) * 10);
+				c2Speed = (rand() % 80) + 20;
+				float height = (rand() % 200);
+				spriteCloud2.setPosition(-200, height);
+				c2Active = true;
+			}
+			else
+			{
+				spriteCloud2.setPosition(spriteCloud2.getPosition().x + (c2Speed * dt.asSeconds()), spriteCloud2.getPosition().y);
+
+				if (spriteCloud2.getPosition().x > 1920)
+				{
+					c2Active = false;
+				}
+			}
+
+			// moving cloud 3
+			if (!c3Active)
+			{
+				srand((int)time(0) * 10);
+				c3Speed = (rand() % 100) + 50;
+				float height = (rand() % 300);
+				spriteCloud3.setPosition(-250, height);
+				c3Active = true;
+			}
+			else
+			{
+				spriteCloud3.setPosition(spriteCloud3.getPosition().x + (c3Speed * dt.asSeconds()), spriteCloud3.getPosition().y);
+	
+				if (spriteCloud3.getPosition().x > 1920)
+				{
+					c3Active = false;
+				}
+			}
+			
+			//placing branches
+			for( int i = 0; i < NUM_BRANCHES; i++ ){ updateBranches(i); }
+			
+			for( int i = 0; i < NUM_BRANCHES; i++ ){
+				
+				float height = i * 150;
+				
+				if (branchPositions[i] == side::LEFT) {
+
+					branches[i].setPosition(610, height);
+					branches[i].setOrigin(220, 40);
+					branches[i].setRotation(180);
+				}
+				else if (branchPositions[i] == side::RIGHT) {
+
+					branches[i].setPosition(1330, height);
+					branches[i].setOrigin(220, 40);
+					branches[i].setRotation(0);
+				}
+				else {
+					//Hide the branch
+					branches[i].setPosition(3000, height);
+				}
+			}
+			
+			
+			
+		}// end of if(!paused)
 
 		window.clear();				   // Blank Canvas
 		window.draw(spriteBackground); // Draws bg
 		window.draw(spriteCloud2);	   //
 		window.draw(spriteCloud3);	   // Draws Clouds
 		window.draw(spriteCloud1);	   //
+
+		for( int i = 0; i < NUM_BRANCHES; i++){
+			window.draw(branches[i]);
+		}
+		
 		window.draw(spriteTree);	   // Draws tree
+		
 		window.draw(spriteBee);		   // Draws bee
 		window.draw(timeBarOutline);   // Draws timebar outline
 		window.draw(timeBar);		   // Draws timebar
-		window.draw(messageText);
+		
+		if(paused){ window.draw(messageText); }
+		
 		window.draw(scoreTextO);
 		window.draw(scoreText);
 		window.display(); //
 	}
 
 	return 0;
+}
+
+void updateBranches(int seed) {
+	
+	//Shift all branches down 
+	for (int i = NUM_BRANCHES - 1; i > 0; i--) {
+		branchPositions[i] = branchPositions[i - 1];
+	}
+
+	//New branch at zeroth position (Top of tree)
+	srand((int)time(0) + seed);
+	int r = (rand() % 5);
+	switch (r) {
+	case 0:
+		branchPositions[0] = side::LEFT;
+		break;
+
+	case 1:
+		branchPositions[0] = side::RIGHT;
+		break;
+
+	default:
+		branchPositions[0] = side::NONE;
+		break;
+	}
 }
