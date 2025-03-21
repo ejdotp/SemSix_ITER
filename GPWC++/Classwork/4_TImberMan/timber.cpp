@@ -8,7 +8,12 @@ void updateBranches(int seed);
 const int NUM_BRANCHES = 6;
 Sprite branches[NUM_BRANCHES];
 
-enum class side{ LEFT, RIGHT, NONE };
+enum class side
+{
+	LEFT,
+	RIGHT,
+	NONE
+};
 
 side branchPositions[NUM_BRANCHES];
 
@@ -16,7 +21,6 @@ side playerSide = side::LEFT;
 
 const float Axe_Left = 700;
 const float Axe_Right = 1075;
-
 
 int main()
 {
@@ -122,55 +126,53 @@ int main()
 
 	scoreText.setPosition(20, 20);
 	scoreText0.setPosition(22, 22);
-	
 
 	Texture textureBranch;
 	textureBranch.loadFromFile("graphics/branch.png");
-	
-	for( int i = 0; i < NUM_BRANCHES; i++){
+
+	for (int i = 0; i < NUM_BRANCHES; i++)
+	{
 		branches[i].setTexture(textureBranch);
 		branches[i].setPosition(-2000, -2000); //(1110, 200) with origin (0, 0) is the ideal position
 		branches[i].setOrigin(220, 20);
 	}
-	
-	
-	Texture texturePlayer;							 
+
+	Texture texturePlayer;
 	texturePlayer.loadFromFile("graphics/player.png");
-	Sprite spritePlayer;							 
-	spritePlayer.setTexture(texturePlayer);			 
+	Sprite spritePlayer;
+	spritePlayer.setTexture(texturePlayer);
 	spritePlayer.setPosition(580, 720);
-	
-	Texture textureAxe;							 
+
+	Texture textureAxe;
 	textureAxe.loadFromFile("graphics/axe.png");
-	Sprite spriteAxe;							 
-	spriteAxe.setTexture(textureAxe);			 
+	Sprite spriteAxe;
+	spriteAxe.setTexture(textureAxe);
 	spriteAxe.setPosition(Axe_Left, 830);
-	
-	Texture textureRIP;							 
+
+	Texture textureRIP;
 	textureRIP.loadFromFile("graphics/rip.png");
-	Sprite spriteRIP;							 
-	spriteRIP.setTexture(textureRIP);			 
+	Sprite spriteRIP;
+	spriteRIP.setTexture(textureRIP);
 	spriteRIP.setPosition(600, 860);
-	
-	Texture textureLog;							 
+
+	Texture textureLog;
 	textureLog.loadFromFile("graphics/log.png");
-	Sprite spriteLog;							 
-	spriteLog.setTexture(textureLog);			 
+	Sprite spriteLog;
+	spriteLog.setTexture(textureLog);
 	spriteLog.setPosition(810, 720);
-	
+
 	bool logActive = false;
 	float logSpeedX = 1000;
 	float logSpeedY = -1500;
 	bool acceptInput = false;
-	
-	
+
 	// Gaming Loop:
 	while (window.isOpen())
 	{
 
-		Event event;						 
-		while (window.pollEvent(event))		
-		{									 
+		Event event;
+		while (window.pollEvent(event))
+		{
 			if (event.type == Event::KeyReleased && !paused)
 			{
 				acceptInput = true;
@@ -181,7 +183,6 @@ int main()
 				window.close();				 //
 			}
 		} //
-
 
 		if (Keyboard::isKeyPressed(Keyboard::Escape)) //
 		{											  // exits games on clicking escape
@@ -197,46 +198,47 @@ int main()
 			spritePlayer.setColor(sf::Color(255, 255, 255, 255));
 			spriteAxe.setColor(sf::Color(255, 255, 255, 255));
 
-			//Make all branches disappear
-			for (int i = 1; i < NUM_BRANCHES; i++) {
+			// Make all branches disappear
+			for (int i = 1; i < NUM_BRANCHES; i++)
+			{
 				branchPositions[i] = side::NONE;
 			}
-			
+
 		} //
-		
-		if(acceptInput)
+
+		if (acceptInput)
 		{
 			if (Keyboard::isKeyPressed(Keyboard::Left))
 			{
 				playerSide = side::LEFT;
 				score++;
-				
+
 				timeRemaining += .05;
 				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
-				
+
 				spritePlayer.setPosition(580, 720);
 				spriteAxe.setPosition(Axe_Left, 830);
 				spriteRIP.setPosition(600, 860);
 				spriteLog.setPosition(810, 720);
-				
+
 				logSpeedX = 5000;
 				logActive = true;
 				acceptInput = false;
 			}
-			
+
 			if (Keyboard::isKeyPressed(Keyboard::Right))
 			{
 				playerSide = side::RIGHT;
 				score++;
-				
+
 				timeRemaining += .05;
 				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
-				
+
 				spritePlayer.setPosition(1200, 720);
 				spriteAxe.setPosition(Axe_Right, 830);
 				spriteRIP.setPosition(1170, 860);
 				spriteLog.setPosition(810, 720);
-				
+
 				logSpeedX = -5000;
 				logActive = true;
 				acceptInput = false;
@@ -249,7 +251,6 @@ int main()
 		{
 			timeRemaining -= dt.asSeconds(); // time decreases.
 			timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
-			
 
 			if (timeRemaining <= 0.0f)
 			{
@@ -264,7 +265,6 @@ int main()
 				spritePlayer.setColor(sf::Color(0, 0, 0, 0));
 				spriteAxe.setColor(sf::Color(0, 0, 0, 0));
 			}
-		
 
 			if (!beeActive)
 			{
@@ -304,7 +304,7 @@ int main()
 					c1Active = false;
 				}
 			}
-	
+
 			// moving cloud 2
 			if (!c2Active)
 			{
@@ -336,59 +336,64 @@ int main()
 			else
 			{
 				spriteCloud3.setPosition(spriteCloud3.getPosition().x + (c3Speed * dt.asSeconds()), spriteCloud3.getPosition().y);
-	
+
 				if (spriteCloud3.getPosition().x > 1920)
 				{
 					c3Active = false;
 				}
 			}
-			
+
 			std::stringstream ss;
 			ss << "Score = " << score;
 			scoreText.setString(ss.str());
 			scoreText0.setString(ss.str());
-			
-			//placing branches
-			for( int i = 0; i < NUM_BRANCHES; i++ ){ updateBranches(i); }
-			
-			for( int i = 0; i < NUM_BRANCHES; i++ ){
-				
+
+			// placing branches
+			for (int i = 0; i < NUM_BRANCHES; i++)
+			{
+				updateBranches(i);
+			}
+
+			for (int i = 0; i < NUM_BRANCHES; i++)
+			{
+
 				float height = i * 150;
-				
-				if (branchPositions[i] == side::LEFT) {
+
+				if (branchPositions[i] == side::LEFT)
+				{
 
 					branches[i].setPosition(610, height);
 					branches[i].setOrigin(220, 40);
 					branches[i].setRotation(180);
 				}
-				else if (branchPositions[i] == side::RIGHT) {
+				else if (branchPositions[i] == side::RIGHT)
+				{
 
 					branches[i].setPosition(1330, height);
 					branches[i].setOrigin(220, 40);
 					branches[i].setRotation(0);
 				}
-				else {
-					//Hide the branch
+				else
+				{
+					// Hide the branch
 					branches[i].setPosition(3000, height);
 				}
 			}
-			
-			
-			//log phinga phingi
+
+			// log phinga phingi
 			if (logActive)
 			{
 				spriteLog.setPosition(spriteLog.getPosition().x + (logSpeedX * dt.asSeconds()), spriteLog.getPosition().y + (logSpeedY * dt.asSeconds()));
 			}
 			else
 			{
-				if (spriteLog.getPosition().y < 0 )
+				if (spriteLog.getPosition().y < 0)
 				{
 					logActive = false;
 				}
 			}
-			
-			
-		}// end of if(!paused)
+
+		} // end of if(!paused)
 
 		window.clear();				   // Blank Canvas
 		window.draw(spriteBackground); // Draws bg
@@ -398,22 +403,26 @@ int main()
 
 		window.draw(spritePlayer);
 
-		for( int i = 0; i < NUM_BRANCHES; i++){
+		for (int i = 0; i < NUM_BRANCHES; i++)
+		{
 			window.draw(branches[i]);
 		}
-		
-		window.draw(spriteTree);	   // Draws tree
+
+		window.draw(spriteTree); // Draws tree
 		window.draw(spriteLog);
-		
+
 		window.draw(spriteRIP);
 		window.draw(spriteAxe);
-		
-		window.draw(spriteBee);		   // Draws bee
-		window.draw(timeBarOutline);   // Draws timebar outline
-		window.draw(timeBar);		   // Draws timebar
-		
-		if(paused){ window.draw(messageText); }
-		
+
+		window.draw(spriteBee);		 // Draws bee
+		window.draw(timeBarOutline); // Draws timebar outline
+		window.draw(timeBar);		 // Draws timebar
+
+		if (paused)
+		{
+			window.draw(messageText);
+		}
+
 		window.draw(scoreText0);
 		window.draw(scoreText);
 		window.display(); //
@@ -422,17 +431,20 @@ int main()
 	return 0;
 }
 
-void updateBranches(int seed) {
-	
-	//Shift all branches down 
-	for (int i = NUM_BRANCHES - 1; i > 0; i--) {
+void updateBranches(int seed)
+{
+
+	// Shift all branches down
+	for (int i = NUM_BRANCHES - 1; i > 0; i--)
+	{
 		branchPositions[i] = branchPositions[i - 1];
 	}
 
-	//New branch at zeroth position (Top of tree)
+	// New branch at zeroth position (Top of tree)
 	srand((int)time(0) + seed);
 	int r = (rand() % 5);
-	switch (r) {
+	switch (r)
+	{
 	case 0:
 		branchPositions[0] = side::LEFT;
 		break;
