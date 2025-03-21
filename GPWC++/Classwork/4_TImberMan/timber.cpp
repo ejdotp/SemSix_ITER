@@ -384,10 +384,8 @@ int main()
 			if (logActive)
 			{
 				spriteLog.setPosition(spriteLog.getPosition().x + (logSpeedX * dt.asSeconds()), spriteLog.getPosition().y + (logSpeedY * dt.asSeconds()));
-			}
-			else
-			{
-				if (spriteLog.getPosition().y < 0)
+
+				if (spriteLog.getPosition().x < -2000 || spriteLog.getPosition().x > 2000)
 				{
 					logActive = false;
 				}
