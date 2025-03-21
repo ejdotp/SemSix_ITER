@@ -1,4 +1,6 @@
 #include <SFML/Graphics.hpp>
+#include <sstream>
+
 using namespace sf;
 
 void updateBranches(int seed);
@@ -9,6 +11,11 @@ Sprite branches[NUM_BRANCHES];
 enum class side{ LEFT, RIGHT, NONE };
 
 side branchPositions[NUM_BRANCHES];
+
+side playerSide = side::LEFT;
+
+const float Axe_Left = 700;
+const float Axe_Right = 1075;
 
 
 int main()
@@ -88,25 +95,25 @@ int main()
 	// Text STuff:
 	Text messageText;
 	Text scoreText;
-	Text scoreTextO;
+	Text scoreText0;
 
 	Font font;
 	font.loadFromFile("font/KOMIKAP_.ttf");
 	messageText.setFont(font);
 	scoreText.setFont(font);
-	scoreTextO.setFont(font);
+	scoreText0.setFont(font);
 
 	messageText.setString("Press Enter to start...");
 	scoreText.setString("Score = 0");
-	scoreTextO.setString("Score = 0");
+	scoreText0.setString("Score = 0");
 
 	messageText.setCharacterSize(75);
 	scoreText.setCharacterSize(100);
-	scoreTextO.setCharacterSize(100);
+	scoreText0.setCharacterSize(100);
 
 	messageText.setFillColor(Color::White);
 	scoreText.setFillColor(Color::White);
-	scoreTextO.setFillColor(Color::Black);
+	scoreText0.setFillColor(Color::Black);
 
 	FloatRect textRect = messageText.getLocalBounds();
 	messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
@@ -114,7 +121,7 @@ int main()
 	messageText.setPosition(960, 540);
 
 	scoreText.setPosition(20, 20);
-	scoreTextO.setPosition(22, 22);
+	scoreText0.setPosition(22, 22);
 	
 
 	Texture textureBranch;
@@ -127,19 +134,54 @@ int main()
 	}
 	
 	
-
+	Texture texturePlayer;							 
+	texturePlayer.loadFromFile("graphics/player.png");
+	Sprite spritePlayer;							 
+	spritePlayer.setTexture(texturePlayer);			 
+	spritePlayer.setPosition(580, 720);
+	
+	Texture textureAxe;							 
+	textureAxe.loadFromFile("graphics/axe.png");
+	Sprite spriteAxe;							 
+	spriteAxe.setTexture(textureAxe);			 
+	spriteAxe.setPosition(Axe_Left, 830);
+	
+	Texture textureRIP;							 
+	textureRIP.loadFromFile("graphics/rip.png");
+	Sprite spriteRIP;							 
+	spriteRIP.setTexture(textureRIP);			 
+	spriteRIP.setPosition(600, 860);
+	
+	Texture textureLog;							 
+	textureLog.loadFromFile("graphics/log.png");
+	Sprite spriteLog;							 
+	spriteLog.setTexture(textureLog);			 
+	spriteLog.setPosition(810, 720);
+	
+	bool logActive = false;
+	float logSpeedX = 1000;
+	float logSpeedY = -1500;
+	bool acceptInput = false;
+	
+	
 	// Gaming Loop:
 	while (window.isOpen())
 	{
 
-		Event event;						 //
-		while (window.pollEvent(event))		 //
-		{									 //
+		Event event;						 
+		while (window.pollEvent(event))		
+		{									 
+			if (event.type == Event::KeyReleased && !paused)
+			{
+				acceptInput = true;
+				spriteAxe.setPosition(2000, spriteAxe.getPosition().y);
+			}
 			if (event.type == Event::Closed) // ensures window stays open until close button pressed
 			{								 //
 				window.close();				 //
-			} //
+			}
 		} //
+
 
 		if (Keyboard::isKeyPressed(Keyboard::Escape)) //
 		{											  // exits games on clicking escape
@@ -151,12 +193,55 @@ int main()
 			paused = false;							  //
 			score = 0;								  //
 			timeRemaining = 6;
+			spriteRIP.setColor(sf::Color(0, 0, 0, 0));
+			spritePlayer.setColor(sf::Color(255, 255, 255, 255));
+			spriteAxe.setColor(sf::Color(255, 255, 255, 255));
 
 			//Make all branches disappear
 			for (int i = 1; i < NUM_BRANCHES; i++) {
 				branchPositions[i] = side::NONE;
 			}
+			
 		} //
+		
+		if(acceptInput)
+		{
+			if (Keyboard::isKeyPressed(Keyboard::Left))
+			{
+				playerSide = side::LEFT;
+				score++;
+				
+				timeRemaining += .05;
+				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
+				
+				spritePlayer.setPosition(580, 720);
+				spriteAxe.setPosition(Axe_Left, 830);
+				spriteRIP.setPosition(600, 860);
+				spriteLog.setPosition(810, 720);
+				
+				logSpeedX = 5000;
+				logActive = true;
+				acceptInput = false;
+			}
+			
+			if (Keyboard::isKeyPressed(Keyboard::Right))
+			{
+				playerSide = side::RIGHT;
+				score++;
+				
+				timeRemaining += .05;
+				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
+				
+				spritePlayer.setPosition(1200, 720);
+				spriteAxe.setPosition(Axe_Right, 830);
+				spriteRIP.setPosition(1170, 860);
+				spriteLog.setPosition(810, 720);
+				
+				logSpeedX = -5000;
+				logActive = true;
+				acceptInput = false;
+			}
+		}
 
 		Time dt = clock.restart(); // clock dependent algos come below this line.
 
@@ -164,13 +249,7 @@ int main()
 		{
 			timeRemaining -= dt.asSeconds(); // time decreases.
 			timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
-
-			if (Keyboard::isKeyPressed(Keyboard::Space))
-			{
-				timeRemaining += 2.0f * dt.asSeconds();
-
-				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
-			}
+			
 
 			if (timeRemaining <= 0.0f)
 			{
@@ -181,6 +260,9 @@ int main()
 				FloatRect textRect = messageText.getLocalBounds();
 				messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
 				messageText.setPosition(960, 540);
+				spriteRIP.setColor(sf::Color(255, 255, 255, 255));
+				spritePlayer.setColor(sf::Color(0, 0, 0, 0));
+				spriteAxe.setColor(sf::Color(0, 0, 0, 0));
 			}
 		
 
@@ -261,6 +343,11 @@ int main()
 				}
 			}
 			
+			std::stringstream ss;
+			ss << "Score = " << score;
+			scoreText.setString(ss.str());
+			scoreText0.setString(ss.str());
+			
 			//placing branches
 			for( int i = 0; i < NUM_BRANCHES; i++ ){ updateBranches(i); }
 			
@@ -287,6 +374,19 @@ int main()
 			}
 			
 			
+			//log phinga phingi
+			if (logActive)
+			{
+				spriteLog.setPosition(spriteLog.getPosition().x + (logSpeedX * dt.asSeconds()), spriteLog.getPosition().y + (logSpeedY * dt.asSeconds()));
+			}
+			else
+			{
+				if (spriteLog.getPosition().y < 0 )
+				{
+					logActive = false;
+				}
+			}
+			
 			
 		}// end of if(!paused)
 
@@ -296,11 +396,17 @@ int main()
 		window.draw(spriteCloud3);	   // Draws Clouds
 		window.draw(spriteCloud1);	   //
 
+		window.draw(spritePlayer);
+
 		for( int i = 0; i < NUM_BRANCHES; i++){
 			window.draw(branches[i]);
 		}
 		
 		window.draw(spriteTree);	   // Draws tree
+		window.draw(spriteLog);
+		
+		window.draw(spriteRIP);
+		window.draw(spriteAxe);
 		
 		window.draw(spriteBee);		   // Draws bee
 		window.draw(timeBarOutline);   // Draws timebar outline
@@ -308,7 +414,7 @@ int main()
 		
 		if(paused){ window.draw(messageText); }
 		
-		window.draw(scoreTextO);
+		window.draw(scoreText0);
 		window.draw(scoreText);
 		window.display(); //
 	}
