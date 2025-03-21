@@ -225,7 +225,7 @@ int main()
 				spriteAxe.setPosition(Axe_Left, 830);
 				spriteRIP.setPosition(600, 860);
 
-				updateBranches[score];
+				updateBranches(score);
 
 				logSpeedX = 6000;
 				logActive = true;
@@ -244,7 +244,7 @@ int main()
 				spriteAxe.setPosition(Axe_Right, 830);
 				spriteRIP.setPosition(1170, 860);
 
-				updateBranches[score];
+				updateBranches(score);
 
 				logSpeedX = -6000;
 				logActive = true;
@@ -383,10 +383,10 @@ int main()
 			scoreText0.setString(ss.str());
 
 			// placing branches
-			// for (int i = 0; i < NUM_BRANCHES; i++)
-			// {
-			// 	updateBranches(i);
-			// }
+			for (int i = 0; i < NUM_BRANCHES; i++)
+			{
+				updateBranches(i);
+			}
 
 			for (int i = 0; i < NUM_BRANCHES; i++)
 			{
