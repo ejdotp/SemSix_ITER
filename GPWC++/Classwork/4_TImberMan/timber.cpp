@@ -200,7 +200,7 @@ int main()
 			timeRemaining = 6;
 			spriteRIP.setColor(sf::Color(0, 0, 0, 0));
 			spritePlayer.setColor(sf::Color(255, 255, 255, 255));
-			// spriteAxe.setColor(sf::Color(255, 255, 255, 255));
+			spriteAxe.setColor(sf::Color(255, 255, 255, 255));
 			acceptLR = true; // not in book
 
 			// Make all branches disappear
@@ -218,7 +218,7 @@ int main()
 				playerSide = side::LEFT;
 				score++;
 
-				timeRemaining += (2 / score) + .5;
+				timeRemaining += (2 / score) + .15;
 				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
 
 				spritePlayer.setPosition(580, 720);
@@ -235,7 +235,7 @@ int main()
 				playerSide = side::RIGHT;
 				score++;
 
-				timeRemaining += (2 / score) + .5;
+				timeRemaining += (2 / score) + .15;
 				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
 
 				spritePlayer.setPosition(1200, 720);
@@ -266,8 +266,29 @@ int main()
 				messageText.setPosition(960, 540);
 				spriteRIP.setColor(sf::Color(255, 255, 255, 255));
 				spritePlayer.setColor(sf::Color(0, 0, 0, 0));
-				spriteAxe.setColor(sf::Color(0, 0, 0, 0));
+				// spriteAxe.setColor(sf::Color(0, 0, 0, 0));
 				acceptLR = false; // not in book
+			}
+
+			if (branchPositions[5] == playerSide) // death
+			{
+				paused = true;
+				messageText.setString("GAME OVER!!!");
+				messageText.setFillColor(Color::Red);
+				messageText.setCharacterSize(130);
+				FloatRect textRect = messageText.getLocalBounds();
+				messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+				messageText.setPosition(960, 540);
+
+				timeRemaining = 0.0f;
+
+				acceptLR = false; // not in book
+
+				spriteRIP.setColor(sf::Color(255, 255, 255, 255));
+				spritePlayer.setColor(sf::Color(0, 0, 0, 0));
+				spriteAxe.setColor(sf::Color(0, 0, 0, 0)); // book re player position window baharuku jauchi, not this way
+
+				acceptInput = false;
 			}
 
 			if (timeRemaining >= 6.1f)
@@ -400,27 +421,6 @@ int main()
 					spriteLog.setPosition(810, 720);
 					acceptLR = true; // not in book
 				}
-			}
-
-			if (branchPositions[5] == playerSide) // death
-			{
-				paused = true;
-				messageText.setString("GAME OVER!!!");
-				messageText.setFillColor(Color::Red);
-				messageText.setCharacterSize(130);
-				FloatRect textRect = messageText.getLocalBounds();
-				messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-				messageText.setPosition(960, 540);
-
-				timeRemaining = 0.0f;
-
-				acceptLR = false; // not in book
-
-				spriteRIP.setColor(sf::Color(255, 255, 255, 255));
-				spritePlayer.setColor(sf::Color(0, 0, 0, 0));
-				spriteAxe.setColor(sf::Color(0, 0, 0, 0)); // book re player position window baharuku jauchi, not this way
-
-				acceptInput = false;
 			}
 
 		} // end of if(!paused)
