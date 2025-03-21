@@ -1,12 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include <sstream>
 #include <iostream>
-#include <stdlib.h>
 
 using namespace sf;
 
 void updateBranches(int seed);
-
 const int NUM_BRANCHES = 6;
 Sprite branches[NUM_BRANCHES];
 
@@ -19,7 +17,7 @@ enum class side
 
 side branchPositions[NUM_BRANCHES];
 
-side playerSide = side::LEFT;
+//
 
 const float Axe_Left = 700;
 const float Axe_Right = 1075;
@@ -144,6 +142,9 @@ int main()
 	Sprite spritePlayer;
 	spritePlayer.setTexture(texturePlayer);
 	spritePlayer.setPosition(580, 720);
+	
+	side playerSide = side::LEFT;
+	
 
 	Texture textureAxe;
 	textureAxe.loadFromFile("graphics/axe.png");
@@ -166,9 +167,14 @@ int main()
 	bool logActive = false;
 	float logSpeedX = 1000;
 	float logSpeedY = -1500;
-	bool acceptInput = true;
-	bool acceptLR = false; // not in book
-
+	bool acceptInput = false;
+	
+	// placing branches
+	for (int i = 0; i < NUM_BRANCHES; i++)
+	{
+		updateBranches(i);
+	}
+	
 	// Gaming Loop:
 	while (window.isOpen())
 	{
@@ -198,27 +204,27 @@ int main()
 			paused = false;							  //
 			score = 0;								  //
 			timeRemaining = 6;
-			spriteRIP.setColor(sf::Color(0, 0, 0, 0));
-			spritePlayer.setColor(sf::Color(255, 255, 255, 255));
-			spriteAxe.setColor(sf::Color(255, 255, 255, 255));
-			acceptLR = true; // not in book
-
-			// Make all branches disappear
-			for (int i = 1; i < NUM_BRANCHES; i++)
+			
+			for (int i = 1; i < NUM_BRANCHES; i++) // Make all branches disappear
 			{
 				branchPositions[i] = side::NONE;
 			}
+			
+			spriteRIP.setColor(sf::Color(0, 0, 0, 0));
+			spritePlayer.setColor(sf::Color(255, 255, 255, 255));
+			spriteAxe.setColor(sf::Color(255, 255, 255, 255));
+			acceptInput = true; 
 
 		} //
 
-		if (acceptInput)
+		if (acceptInput) //make sure we are accepting input
 		{
-			if (Keyboard::isKeyPressed(Keyboard::Left) && acceptLR)
+			if (Keyboard::isKeyPressed(Keyboard::Left))
 			{
 				playerSide = side::LEFT;
 				score++;
 
-				timeRemaining += (2 / score) + .15;
+				timeRemaining += (2 / score) + .3;
 				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
 
 				spritePlayer.setPosition(580, 720);
@@ -232,12 +238,12 @@ int main()
 				acceptInput = false;
 			}
 
-			if (Keyboard::isKeyPressed(Keyboard::Right) && acceptLR)
+			if (Keyboard::isKeyPressed(Keyboard::Right))
 			{
 				playerSide = side::RIGHT;
 				score++;
 
-				timeRemaining += (2 / score) + .15;
+				timeRemaining += (2 / score) + .3;
 				timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
 
 				spritePlayer.setPosition(1200, 720);
@@ -271,7 +277,6 @@ int main()
 				spriteRIP.setColor(sf::Color(255, 255, 255, 255));
 				spritePlayer.setColor(sf::Color(0, 0, 0, 0));
 				// spriteAxe.setColor(sf::Color(0, 0, 0, 0));
-				acceptLR = false; // not in book
 			}
 
 			if (branchPositions[5] == playerSide) // death
@@ -285,8 +290,6 @@ int main()
 				messageText.setPosition(960, 540);
 
 				timeRemaining = 0.0f;
-
-				acceptLR = false; // not in book
 
 				spriteRIP.setColor(sf::Color(255, 255, 255, 255));
 				spritePlayer.setColor(sf::Color(0, 0, 0, 0));
@@ -382,11 +385,7 @@ int main()
 			scoreText.setString(ss.str());
 			scoreText0.setString(ss.str());
 
-			// placing branches
-			for (int i = 0; i < NUM_BRANCHES; i++)
-			{
-				updateBranches(i);
-			}
+
 
 			for (int i = 0; i < NUM_BRANCHES; i++)
 			{
@@ -423,7 +422,6 @@ int main()
 				{
 					logActive = false;
 					spriteLog.setPosition(810, 720);
-					acceptLR = true; // not in book
 				}
 			}
 
