@@ -92,32 +92,44 @@ int main()
 	Time gameTimeTotal;												 //
 	float timeRemaining = 6.0f;										 // 	every second 66.6 pixels reduced.
 	float timeBarWidthPerSecond = timeBarStartWidth / timeRemaining; //
+	float decrementor = 1.0f;										 //
 
 	bool paused = true; // 	for time bar management
 	int score = 0;		//
+	int level = 1;
 
 	// Text STuff:
 	Text messageText;
 	Text scoreText;
 	Text scoreText0;
+	Text levelText;
+	Text levelText0;
 
 	Font font;
 	font.loadFromFile("font/KOMIKAP_.ttf");
 	messageText.setFont(font);
 	scoreText.setFont(font);
 	scoreText0.setFont(font);
+	levelText.setFont(font);
+	levelText0.setFont(font);
 
 	messageText.setString("Press Enter to start...");
 	scoreText.setString("Score = 0");
 	scoreText0.setString("Score = 0");
+	levelText.setString("Level 1");
+	levelText0.setString("Level 1");
 
 	messageText.setCharacterSize(75);
 	scoreText.setCharacterSize(100);
 	scoreText0.setCharacterSize(100);
+	levelText.setCharacterSize(40);
+	levelText0.setCharacterSize(40);
 
 	messageText.setFillColor(Color::White);
 	scoreText.setFillColor(Color::White);
 	scoreText0.setFillColor(Color::Black);
+	levelText.setFillColor(Color::Yellow);
+	levelText0.setFillColor(Color::Black);
 
 	FloatRect textRect = messageText.getLocalBounds();
 	messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
@@ -126,6 +138,8 @@ int main()
 
 	scoreText.setPosition(20, 20);
 	scoreText0.setPosition(22, 22);
+	levelText.setPosition(20, 135);
+	levelText0.setPosition(22, 137);
 
 	Texture textureBranch;
 	textureBranch.loadFromFile("graphics/branch.png");
@@ -142,9 +156,8 @@ int main()
 	Sprite spritePlayer;
 	spritePlayer.setTexture(texturePlayer);
 	spritePlayer.setPosition(580, 720);
-	
+
 	side playerSide = side::LEFT;
-	
 
 	Texture textureAxe;
 	textureAxe.loadFromFile("graphics/axe.png");
@@ -168,13 +181,13 @@ int main()
 	float logSpeedX = 1000;
 	float logSpeedY = -1500;
 	bool acceptInput = false;
-	
+
 	// placing branches
 	for (int i = 0; i < NUM_BRANCHES; i++)
 	{
 		updateBranches(i);
 	}
-	
+
 	// Gaming Loop:
 	while (window.isOpen())
 	{
@@ -204,20 +217,22 @@ int main()
 			paused = false;							  //
 			score = 0;								  //
 			timeRemaining = 6;
-			
+			level = 1;
+			decrementor = 1;
+
 			for (int i = 1; i < NUM_BRANCHES; i++) // Make all branches disappear
 			{
 				branchPositions[i] = side::NONE;
 			}
-			
+
 			spriteRIP.setColor(sf::Color(0, 0, 0, 0));
 			spritePlayer.setColor(sf::Color(255, 255, 255, 255));
 			spriteAxe.setColor(sf::Color(255, 255, 255, 255));
-			acceptInput = true; 
+			acceptInput = true;
 
 		} //
 
-		if (acceptInput) //make sure we are accepting input
+		if (acceptInput) // make sure we are accepting input
 		{
 			if (Keyboard::isKeyPressed(Keyboard::Left))
 			{
@@ -262,7 +277,7 @@ int main()
 
 		if (!paused)
 		{
-			timeRemaining -= dt.asSeconds(); // time decreases.
+			timeRemaining -= decrementor * dt.asSeconds(); // time decreases.
 			timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHieght));
 
 			if (timeRemaining <= 0.0f)
@@ -300,7 +315,9 @@ int main()
 
 			if (timeRemaining >= 6.1f)
 			{
-				timeRemaining = 5;
+				timeRemaining = 4.5f;
+				decrementor += 0.1f;
+				level++;
 			}
 
 			if (!beeActive)
@@ -385,7 +402,10 @@ int main()
 			scoreText.setString(ss.str());
 			scoreText0.setString(ss.str());
 
-
+			std::stringstream ls;
+			ls << "Level " << level;
+			levelText.setString(ls.str());
+			levelText0.setString(ls.str());
 
 			for (int i = 0; i < NUM_BRANCHES; i++)
 			{
@@ -457,6 +477,8 @@ int main()
 
 		window.draw(scoreText0);
 		window.draw(scoreText);
+		window.draw(levelText0);
+		window.draw(levelText);
 		window.display(); //
 	}
 
