@@ -224,19 +224,6 @@ int main()
         if (Keyboard::isKeyPressed(Keyboard::C))
         {
             cheatActive = !cheatActive; // Toggle cheat mode
-            if (cheatActive)
-            {
-                messageText.setString("CHEAT MODE ON");
-                messageText.setFillColor(Color::Green);
-            }
-            else
-            {
-                messageText.setString("CHEAT MODE OFF");
-                messageText.setFillColor(Color::White);
-            }
-            FloatRect textRect = messageText.getLocalBounds();
-            messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-            messageText.setPosition(960, 540);
         }
 
         // Start game when Enter is pressed
@@ -578,15 +565,17 @@ int main()
         window.draw(timeBarOutline); // Draws timebar outline
         window.draw(timeBar);        // Draws timebar
 
+        window.draw(scoreText0);
+        window.draw(scoreText);
+        window.draw(levelText0);
+        window.draw(levelText);
+
+        // Show message text only when game is paused
         if (paused)
         {
             window.draw(messageText);
         }
 
-        window.draw(scoreText0);
-        window.draw(scoreText);
-        window.draw(levelText0);
-        window.draw(levelText);
         window.display(); //
     }
 
