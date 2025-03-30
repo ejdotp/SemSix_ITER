@@ -621,7 +621,3 @@ int main() {
     return 0;
 }
 ```
-
----
-
-_Author: Souvik Kr. Parui_

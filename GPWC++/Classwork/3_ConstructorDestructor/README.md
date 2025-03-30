@@ -777,5 +777,3 @@ int main() {
 ```
 
 ---
-
-_Author: Souvik Kr. Parui_
