@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug SFML",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/GPWC++/Classwork/4_TImberMan/bin/main.exe",
+            "cwd": "${workspaceFolder}/GPWC++/Classwork/4_TImberMan",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build SFML Project",
+            "externalConsole": false
+        }
+    ]
+}
