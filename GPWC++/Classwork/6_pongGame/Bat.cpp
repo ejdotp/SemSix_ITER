@@ -7,6 +7,7 @@ Bat::Bat(float startX, float startY)
 	
 	m_Shape.setSize(sf::Vector2f(250, 50)); // Define bat size (50 x 5)
 	m_Shape.setPosition(m_Position); //set position on screen
+	m_Shape.setFillColor(sf::Color::Green);
 }
 	
 FloatRect Bat::getPosition()
