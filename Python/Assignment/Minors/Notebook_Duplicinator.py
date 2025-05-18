@@ -15,9 +15,9 @@ def add_print_statement(notebook_path, output_path):
         if cell['cell_type'] == 'code':
             # Add print statement at the end of the cell's source
             if isinstance(cell['source'], list):
-                cell['source'].append('\nprint("Arman Das Pattanaik")\n')
+                cell['source'].append('\nprint("Sujan Ku Pattanaik")\n')
             else:
-                cell['source'] = cell['source'] + '\nprint("Arman Das Pattanaik")\n'
+                cell['source'] = cell['source'] + '\nprint("Sujan Ku Pattanaik")\n'
     
     # Write the modified notebook
     with open(output_path, 'w', encoding='utf-8') as f:
@@ -27,11 +27,12 @@ def add_print_statement(notebook_path, output_path):
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Create duplicates with modifications
-notebooks = [
-    ('Minor_Ass_1.ipynb', 'Minor_Ass_1_Arman.ipynb'),
-    ('Minor_Ass_2.ipynb', 'Minor_Ass_2_Arman.ipynb'),
-    ('Minor_Ass_3.ipynb', 'Minor_Ass_3_Arman.ipynb')
-]
+# notebooks = [
+#     ('Minor_Ass_1.ipynb', 'Minor_Ass_1_Arman.ipynb'),
+#     ('Minor_Ass_2.ipynb', 'Minor_Ass_2_Arman.ipynb'),
+#     ('Minor_Ass_3.ipynb', 'Minor_Ass_3_Arman.ipynb')
+# ]
+notebooks = [('./Minor Ass 4/Minor_Ass_4.ipynb', './Minor Ass 4/Minor_Ass_4_Sujan.ipynb')]
 
 for original, duplicate in notebooks:
     try:
