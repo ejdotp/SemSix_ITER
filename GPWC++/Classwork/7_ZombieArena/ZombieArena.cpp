@@ -1,13 +1,16 @@
 #include <SFML/Graphics.hpp>
 #include "Player.h"
+#include "createBackground.h"
 using namespace sf;
 
 int main()
 {
 	//Get Screen Resolution:
 	Vector2f res;
-	res.x = VideoMode::getDesktopMode().width;
-	res.y = VideoMode::getDesktopMode().height;
+	//res.x = VideoMode::getDesktopMode().width;
+	//res.y = VideoMode::getDesktopMode().height;
+	res.x = 500.0;
+	res.y = 500.0;
 	
 	//Create a full-screen window:
 	RenderWindow window(VideoMode(res.x, res.y), "Zombie Arena");
@@ -15,6 +18,17 @@ int main()
 	//view to follow the player:
 	View mainView(FloatRect(0, 0, res.x, res.y));
 	window.setView(mainView);
+
+	//Create arena
+	IntRect arena(0, 0, 500, 500);
+
+	//Create bg tiles from the arena
+	VertexArray bg;
+	createBackground(bg, arena);
+
+	//load background
+	Texture bgTexture;
+	bgTexture.loadFromFile("graphics/background_sheet.png");
 	
 	//creating player object:
 	Player player;
@@ -69,6 +83,7 @@ int main()
 
 		//Clear the window and show it ( blank screen ):
 		window.clear();
+		window.draw(bg, &bgTexture);
 		window.draw(player.getSprite());
 		window.display();
 	}
