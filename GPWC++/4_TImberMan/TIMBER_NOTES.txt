@@ -1,0 +1,1838 @@
+TIMBER MAN GAME
+--------------
+
+Timberman is a fast-paced arcade game where players take on the role of a lumberjack chopping down a tree while avoiding falling branches. 
+
+
+The goal is to chop as much as possible before running out of time or getting hit by a falling branch. The player must avoid them while chopping the tree down.
+
+
+
+Gameplay Mechanics :
+-------------------
+
+The player must chop a tree by pressing the left or right keys.
+
+Each chop removes part of the tree and causes branches to move down.
+
+The player needs to avoid getting hit by branches.
+
+The game has a time limit—chopping quickly increases the remaining time.
+
+This gravestone is drawn when the player dies in the game.
+
+If player chops to the left, Log moves to the RIGHT. If player chops to the right, Log moves to the LEFT.
+
+
+
+
+1. Chopping the Tree
+--------------------
+
+The player chops the tree by pressing the Left or Right arrow keys.
+
+Each chop removes part of the tree, making it shorter.
+
+The player must quickly decide which side to chop based on the position of the branches.
+
+
+2. Avoiding Branches
+-------------------
+
+After every chop, branches move downward.
+
+If a branch touches the player’s position, the game ends.
+
+The player must switch sides carefully to avoid getting hit.
+
+
+3. Time Limit & Score System
+-----------------------------
+
+The player starts with limited time.
+
+Each successful chop increases the remaining time based on the score:
+Formula: timeRemaining += (2 / score) + 0.15;
+
+If time runs out, the player loses.
+
+
+4. Log Movement
+----------------
+
+The game adds a visual effect where a log flies off in the opposite direction of the chop.
+
+If the player chops to the LEFT - Log flies to the RIGHT.
+
+If the player chops to the RIGHT - Log flies to the LEFT.
+
+
+5. Player Death Mechanic
+-------------------------
+
+If the player is hit by a branch:
+
+The game pauses (paused = true).
+
+The "SQUISHED!!" message appears.
+
+A gravestone (spriteRIP) is drawn at the player’s last position.
+
+The player disappears from the screen.
+
+A death sound plays.
+
+
+6. Added
+--------------------------
+
+As the score increases, the game becomes more challenging:
+
+Time bonus per chop decreases : Forces faster decision-making.
+
+More branches appear : Less room to move safely.
+
+The log flies faster : Creates a more dynamic visual effect.
+
+
+
+
+
+
+Objective 1: Understanding Video Mode & Gaming Window Creation
+--------------------------------------------------------
+
+Expected Output :
+
+1. Creating a windrow with actual resolution of 1920 x 1080, where we will place different objects. 
+
+2. A fullscreen black window appears.
+
+3. Event Loop: Captures and processes user inputs. Pressing Escape will close it.
+
+
+
+// used for drawing shapes, images, and handling positions.
+
+#include <SFML/Graphics.hpp>
+
+// allows to use SFML classes directly without needing to prefix them with sf::
+
+using namespace sf;
+
+int main()
+{
+    //Define the window size (1920x1080 pixels)
+    VideoMode vm(1920, 1080);
+
+    //Create a window with this canvas size
+    RenderWindow window(vm, "Timber!!!", Style::Fullscreen);
+
+    // Keep the window open
+    while (window.isOpen())
+    {
+        //Close window if 'Escape' key is pressed
+        if (Keyboard::isKeyPressed(Keyboard::Escape))
+        {
+            window.close();
+        }
+
+        //Clear the screen before drawing the next frame
+        window.clear();
+        
+        // Display new frame
+        window.display();
+    }
+
+    return 0;
+}
+
+
+
+
+
+NOTE
+
+
+Loads textures for additional game objects
+------------------------------------------
+
+Tree: A static object in the game. The tree at (810, 0), meaning it is placed at x=810, y=top of the screen.
+
+Bee: A moving object that will fly across the screen. The bee starts off the screen at (0, 800).
+
+Clouds: Three independent cloud sprites moving at different speeds. The clouds start at different heights but off-screen, ready to enter from the left.
+
+
+
+
+Rendering section follows a clear sequence:
+----------------------------------------------
+
+Clear the screen : window.clear();
+
+Draw elements in order:
+
+Background
+Clouds
+Tree
+Bee
+UI elements (Draw score, Draw time bar)
+
+
+Display everything : window.display();
+
+
+
+
+
+
+
+Objective 2: Adding a Background Image (Asset). Place a background image inside this window. (Static Object)
+-----------------------------------------
+
+Expected Output :
+
+If background.png exists in the graphics/ folder, it will fill the screen with that image.
+
+
+
+//Add this inside main() after creating the window
+
+
+// A texture in SFML is like an image file (PNG, JPG) that you load into memory.
+// It stores pixel data but cannot be drawn directly to the screen.
+// You can think of it as a large poster or wallpaper that you place on a wall but haven't yet cut or positioned.
+
+Texture textureBackground;
+
+
+// Loads an image but doesn't display it yet
+
+textureBackground.loadFromFile("graphics/background.png"))
+
+
+// Create a object sprite and Assigns texture to the sprite.
+// A sprite is an object that displays a part of the texture on the screen.
+// It is like cutting out a part of the wallpaper (texture) and pasting it onto a board (screen).
+// setTexture(): Assigns the texture to the sprite.
+
+Sprite spriteBackground;
+spriteBackground.setTexture(textureBackground);
+
+
+//Places the sprite at the left-top corner (0,0)
+
+spriteBackground.setPosition(0, 0);
+
+
+// background image is now visible on the screen.
+
+window.clear();                // Clear previous frame
+
+window.draw(spriteBackground); // Draw the background
+
+window.display();              // Show the frame
+
+
+
+
+
+
+
+NOTE:  SFML Coordinates
+--------------------------
+
+SFML uses a 2D coordinate system:
+
+(0,0) is the left-top corner.
+
+X increases → Right
+Y increases ↓ Down
+
+Example Calculation : 
+
+Sprite Position	     Coordinates (X, Y)
+Left-Top	          (0, 0)
+Center	                (960, 540)
+Right-Bottom	       (1920, 1080) (window width,Height)
+
+Example :
+
+1. Suppose, To move the sprite to the center: spriteBackground.setPosition(960, 540);
+
+
+2. In SFML, the default position of a sprite is at (0,0), meaning its top-left corner starts at (0,0).
+Suppose, you're moving the top-left corner of the sprite to a new position so that its center aligns with (960, 540).
+
+
+Imagine you have a sprite of size 200 x 100 (width = 200, height = 100).
+By default: Its top-left corner is at (0,0). So its center is at (100, 50).
+If you want to place it at (960, 540), then: The top-left corner moves to (960, 540), But the center moves to (1060, 590) (wrong position).
+
+To fix this, subtract half its width and height:
+spriteBackground.setPosition(960 - 100, 540 - 50); // Moves top-left to (860, 490)
+
+To center a sprite, you must subtract half its width & height from the target position
+
+ // Get sprite size
+ sf::FloatRect spriteBounds = spriteBackground.getLocalBounds();
+ float spriteWidth = spriteBounds.width;
+ float spriteHeight = spriteBounds.height;
+
+// Center the sprite
+spriteBackground.setPosition(960 - spriteWidth / 2, 540 - spriteHeight / 2);
+
+
+
+
+
+
+Objective 3: Adding a Tree image inside this window (Static Object)
+-----------------------------------------
+
+// prepare the tree
+
+Texture textureTree;
+textureTree.loadFromFile("graphics/tree.png");
+
+Sprite spriteTree;
+spriteTree.setTexture(textureTree);
+spriteTree.setPosition(810, 0);
+
+
+The X-coordinate is 810, placing the sprite 810 pixels from the left.
+The Y-coordinate is 0, placing the sprite at the top of the window.
+
+
+// Draw a tree
+
+window.clear();
+
+window.draw(spriteBackground);
+
+window.draw(spriteTree);
+
+window.display();
+
+
+
+
+
+
+
+Objective 4: Place a Bee image inside this window. Moving the Bee (Dynamic Object)
+-----------------------------------------------
+
+The bee moves from right to left, disappearing and then reappearing at random heights.
+
+
+
+A.  Prepare the bee
+------------------
+
+Texture textureBee;
+textureBee.loadFromFile("graphics/bee.png");
+
+Sprite spriteBee;
+spriteBee.setTexture(textureBee);
+
+
+spriteBee.setPosition(0, 800); // Start position (bottom-left)
+
+
+x = 0 : at the leftmost part of the screen. It is at the extreme left of the screen.
+y = 800 : 800 pixels from the top.
+
+
+B. Draw a bee 
+-------------
+
+window.clear();
+
+window.draw(spriteTree);
+window.draw(spriteBee);
+
+window.display();
+
+
+
+
+
+
+C. Moving the Bee
+-------------------------------
+
+// Is the bee currently moving? (beeActive determines if it's currently moving)
+
+bool beeActive = false;
+
+
+// How fast can the bee fly (beeSpeed stores how fast it moves)
+
+float beeSpeed = 0.0f;
+
+
+
+
+
+D. Randomizing the Bee’s Movement
+--------------------------------
+
+The bee should appear at random heights and speeds when it respawns.
+
+
+#include <cstdlib>
+#include <ctime>
+
+
+// Variables to control time itself
+Clock clock;
+
+
+
+while (window.isOpen())
+{
+ ------------------
+ Handle the players input (Keyboard::Escape)
+--------------------------
+  Update the scene
+--------------------
+
+// Measure time
+
+Time dt = clock.restart();
+
+// Setup the bee
+if (!beeActive)
+{
+...............
+
+
+
+// If bee is not active, set it up
+
+if (!beeActive)
+{
+    srand((int)time(0));  // Seed with current time
+
+    beeSpeed = (rand() % 200) + 200; // Random speed between 200-400
+    float height = (rand() % 500) + 500; // Random height between 500-1000
+
+    spriteBee.setPosition(2000, height); // The bee starts off-screen at X = 2000.  Start off-screen on the right that means outside of the window (2000 pixels from left, measure height from top)
+    
+    beeActive = true;
+}
+
+
+
+
+
+NOTE:
+
+srand((int)time(0) * 10);  //random number generator with the current time (multiplied by 10). srand(time(0)) remains constant for a whole second. When generating multiple random values in the same second (setting different speeds for objects).
+
+srand(time(0));
+int num1 = rand() % 100;
+int num2 = rand() % 100;
+int num3 = rand() % 100;
+std::cout << num1 << " " << num2 << " " << num3 << std::endl;
+
+Output (if run within the same second multiple times):
+42 17 89
+42 17 89
+42 17 89
+
+
+
+beeSpeed  //rand() % 200 generates a number between 0 and 199. Adding 200 makes the final range 200 to 400.
+
+
+
+
+rand() Vs srand()
+----------------
+
+rand() :Generates a pseudo-random number [int r = rand() % 100; // 0 to 99]
+
+srand(seed) : Seeds the random number generator to ensure different results each run [srand(time(0));]
+
+
+
+
+
+
+Moving the Bee
+-------------
+
+Once active, the bee moves left at its random speed.
+moving the bee sprite from right to left across the screen. 
+If the bee moves completely off the screen, it is reset to be inactive.
+
+else
+{
+    spriteBee.setPosition(
+        spriteBee.getPosition().x - (beeSpeed * dt.asSeconds()),
+        spriteBee.getPosition().y
+    );
+
+    // If bee moves off-screen, reset it
+    // checking if the bee has moved completely off the screen to the left
+    // If it has, the bee is deactivated so it can be reset and reused.
+
+    if (spriteBee.getPosition().x < -100)
+    {
+        beeActive = false;
+    }
+}
+
+
+
+
+
+
+NOTE
+
+spriteBee.getPosition().x : Gets the current X-position of the bee.
+
+beeSpeed * dt.asSeconds() : Calculates the distance to move.
+
+beeSpeed is the speed of the bee (random between 200 to 400 pixels per second).
+
+dt.asSeconds() is the time elapsed since the last frame, ensuring frame-independent movement.
+
+New X Position: The bee moves left by subtracting the calculated movement from its X position.
+Y-position remains unchanged (spriteBee.getPosition().y), so the bee stays at the same height.
+
+
+
+
+
+
+If the bee moves past X = -100, it is considered "out of the screen."
+The bee is deactivated (beeActive = false;) so it can be reset in the if (!beeActive) condition.
+
+-100 Instead of 0?  The bee sprite may still be partially visible at X = 0 depending on its size.
+
+
+
+
+
+
+Example:
+--------
+To calculate an example of how far the bee moves per frame.
+
+beeSpeed = 300 pixels per second.
+dt.asSeconds() = 0.016 (assuming If a game runs at 60 FPS, Frame time = 1/60 = 0.016 seconds per frame).
+
+Movement per frame: Distance = 300 * 0.016 = 4.8 pixels per frame
+
+So, if the bee was at X = 2000, the new position would be:
+New X = 2000 - 4.8 = 1995.2
+
+This happens every frame, making the bee smoothly move left. Every frame, it moves left by (beeSpeed * dt.asSeconds()) pixels.
+
+
+
+
+What Happens Without dt.asSeconds()?
+-----------
+If you moved the bee with a fixed value like:
+
+spriteBee.setPosition(spriteBee.getPosition().x - 5, spriteBee.getPosition().y);
+
+At 60 FPS, the bee moves 5 * 60 = 300 pixels per second. (Smooth)
+At 30 FPS, the bee moves 5 * 30 = 150 pixels per second.  (Slower movement)
+At 120 FPS, the bee moves 5 * 120 = 600 pixels per second. (Faster movement)
+
+However, the actual movement is dynamically controlled by dt.asSeconds() so it works for any frame rate.
+
+
+
+
+
+
+
+Objective 5: Moving the Clouds (Dynamic Objects)
+------------------------------------------
+
+The clouds move rightward and reset when they go off-screen.
+
+
+A. Create a texture & Sprite for clouds
+-------------------------
+
+Texture textureCloud;
+textureCloud.loadFromFile("graphics/cloud.png");
+
+
+Sprite spriteCloud1, spriteCloud2, spriteCloud3;
+spriteCloud1.setTexture(textureCloud);
+spriteCloud2.setTexture(textureCloud);
+spriteCloud3.setTexture(textureCloud);
+
+
+// Initial Cloud Positions
+
+spriteCloud1.setPosition(0, 0);
+spriteCloud2.setPosition(0, 150);
+spriteCloud3.setPosition(0, 300);
+
+
+
+B. Draw 3 clouds
+-----------------
+
+window.clear();
+
+window.draw(spriteBackground);
+
+window.draw(spriteCloud1);
+window.draw(spriteCloud2);
+window.draw(spriteCloud3);
+
+window.draw(spriteTree);
+
+window.draw(spriteBee);
+
+window.display();
+
+
+
+NOTE: Order Matters
+
+Background first (so it's behind everything).
+Clouds next (since they move behind the tree).
+Tree after that.
+Bee last (so it appears in front).
+
+
+
+
+C. Moving the all clouds
+------------------------
+
+// Track active state and speed
+
+bool cloud1Active = false;
+bool cloud2Active = false;
+bool cloud3Active = false;
+
+
+float cloud1Speed = 0.0f; 
+float cloud2Speed = 0.0f;
+float cloud3Speed = 0.0f;
+
+
+
+D. Randomizing Cloud Movement
+-----------------------------
+
+Each cloud starts off-screen and moves rightward at a random speed.
+
+
+Speed is randomly chosen between 0-200 pixels/sec.
+
+Height is randomized within 150 pixels.
+
+
+if (!cloud1Active)
+{
+    srand((int)time(0) * 10);
+    cloud1Speed = (rand() % 200);
+
+    srand((int)time(0) * 10);
+    float height = (rand() % 150);
+    
+    spriteCloud1.setPosition(-200, height); // Start off-screen (left)
+    cloud1Active = true;
+}
+
+
+
+Moving Clouds
+-------------
+
+Moves right at cloud1Speed pixels per second.
+
+If it moves past 1920px, reset it.
+
+
+else
+{
+    spriteCloud1.setPosition(
+        spriteCloud1.getPosition().x + (cloud1Speed * dt.asSeconds()),
+        spriteCloud1.getPosition().y
+    );
+
+    if (spriteCloud1.getPosition().x > 1920)
+    {
+        cloud1Active = false;
+    }
+}
+
+
+
+----------------------------------------------------------------------------
+Summary :
+
+The tree stays static.
+The bee moves left, disappearing & reappearing at random heights.
+The clouds move right, disappearing & respawning at different speeds.
+Pressing Escape closes the game.
+
+
+
+
+
+
+Objective 6: Time Management (Creates a time bar visually represents remaining game time)
+------------------------------------------
+
+RectangleShape Class
+--------------------
+
+setSize(Vector2f(width, height)) - Sets the size of the rectangle.
+
+setFillColor(Color::Red)- Changes the fill color.
+
+setPosition(float x, float y) - Sets the position in the window.
+
+setOutlineThickness(float thickness) - Adds an outline to the shape.
+
+setOutlineColor(Color::Black) - Sets the outline color.
+
+setRotation(float angle) - Rotates the rectangle.
+
+
+
+
+A.  Variables to control time itself
+-------------------------------------
+
+// Creates an SFML clock that tracks elapsed time.
+
+Clock clock;
+	
+
+B. Creating and Positioning the Time Bar
+----------------------------------------
+
+//The time bar starts at 400 pixels wide.
+
+RectangleShape timeBar;
+
+float timeBarStartWidth = 400;
+float timeBarHeight = 80;
+
+timeBar.setSize(Vector2f(timeBarStartWidth, timeBarHeight));
+
+timeBar.setFillColor(Color::Red);
+
+
+// 1920 / 2 = 960 (center of the screen).
+// 960 - 400 / 2 = 760 → Centers the time bar horizontally.
+// 980 sets its vertical position near the bottom of the screen.
+
+timeBar.setPosition((1920 / 2) - timeBarStartWidth / 2, 980);
+
+
+
+Time gameTimeTotal;
+
+float timeRemaining = 6.0f; //The player starts with 6 seconds of playtime.
+
+// This calculates how much width to remove per second from the time bar. 
+// Example: If the initial time bar width is 400 pixels and timeRemaining = 6
+// This means every second, the bar shrinks by 66.67 pixels
+
+float timeBarWidthPerSecond = timeBarStartWidth / timeRemaining;
+
+
+
+C. Track whether the game is running
+-----------------------------------
+
+// The game starts in a paused state (paused = true).
+
+bool paused = true;
+
+int score = 0;
+
+
+
+D. Start the game
+-----------------
+
+// When the player presses Enter (Return), the game resets:
+// Unpauses (paused = false).
+// Resets the score (score = 0).
+// Sets time remaining to 5 seconds.
+
+		
+if (Keyboard::isKeyPressed(Keyboard::Return)) {
+			
+paused = false;						
+score = 0; // Reset the time and the score
+			
+timeRemaining = 5;
+
+}
+
+
+
+E. Updating Time Bar in Each Frame
+-----------------------------
+
+within Loop
+It works when pause is false (No Enter is pressed).
+
+
+
+if (!paused)
+{
+
+1. Measure time
+2. Setup the bee
+3. Manage the clouds
+4. Update the score text
+
+}// End if(!paused)
+
+
+
+
+// Measure time
+
+Time dt = clock.restart();
+
+
+// Subtract from the amount of time remaining
+
+timeRemaining -= dt.asSeconds();
+
+
+// Each frame, the timeRemaining decreases. The width of the time bar is updated using:
+
+timeBar.setSize(Vector2f(timeBarWidthPerSecond * timeRemaining, timeBarHeight));
+			
+			
+if (timeRemaining <= 0.0f) {
+
+paused = true; //Game pauses when timeRemaining hits 0
+
+// // Change the message shown to the player(Next Onjective Code)
+
+}
+
+// Setup the bee
+
+-------
+
+
+F. Draw the timebar
+-------------------
+
+window.draw(timeBar);
+
+
+
+Summary :
+----------
+Time Remaining	  Time Bar Width (pixels)
+6.0 sec			400
+5.0 sec			333
+4.0 sec			266
+
+
+Tracks elapsed time using SFML’s Clock.
+Reduces timeRemaining each frame based on dt.asSeconds().
+Dynamically shrinks the time bar based on remaining time.
+Pauses the game when time runs out.
+Can restart by pressing Enter.
+
+
+
+
+
+
+
+Objective 7 : Displaying Text in SFML (Score & Message Text)
+-------------------------------------------------
+
+
+Show a starting message (Press Enter to start!).
+
+Display the score (Score = 0) in the top-left corner.
+
+Change the message to "Out of time!!" when the game ends.
+
+Update the score dynamically during gameplay.
+
+
+ 
+A. Creating SFML Text Objects
+-----------------------------
+
+// messageText : Displays messages like "Press Enter to start!" or "Out of time!!".
+// scoreText : Displays the player’s score.
+
+Text messageText;
+Text scoreText;
+
+
+
+B. We need to choose a font (Loading and Setting a Font)
+---------------------------
+
+Font font;
+font.loadFromFile("fonts/KOMIKAP_.ttf");
+
+
+// Set the font to our message
+
+messageText.setFont(font);
+scoreText.setFont(font);
+
+
+// Assign the actual message
+
+messageText.setString("Press Enter to start!");
+scoreText.setString("Score = 0");
+
+
+// controls font size (in pixels)
+
+messageText.setCharacterSize(75);
+scoreText.setCharacterSize(100);
+
+
+// Choose a color
+
+messageText.setFillColor(Color::White);
+scoreText.setFillColor(Color::White);
+
+
+
+
+C. Position the text (Centering the Message Text on Screen)
+---------------------
+
+// Get the Text’s Bounds
+
+FloatRect textRect = messageText.getLocalBounds();
+
+
+// Since text does not always start at (0,0) (due to font spacing), we must calculate its exact center. Set the Origin to the Center, This makes sure the text is perfectly centered when placed. Since the origin is now centered, the text appears perfectly centered in the window.
+
+// Moves the origin to half the text width, centering it horizontally.
+//Moves the origin to half the text height, centering it vertically
+// If we don't set the origin, placing text at (400, 300) positions its top-left corner at (400, 300), making it look off-center.
+// With setOrigin(), the text’s center is positioned exactly at (400, 300).
+
+--------------------------------------------
+Imagine we have a text with:
+
+textRect.left = 0
+textRect.top = 0
+textRect.width = 200
+textRect.height = 50
+
+// The text's top-left corner would be at (960, 540), which looks off-center.
+
+Without centering:  messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+
+
+// The text is properly centered in the middle of the screen.
+// This ensures that text appears exactly in the center, making it visually balanced and aligned correctly in the game.
+
+With centering:
+
+messageText.setOrigin(100, 25);  // Center (width/2, height/2)
+messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+
+This ensures that text appears exactly in the center, making it visually balanced and aligned correctly in the game
+----------------------------------------------
+
+messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+
+
+// Move It to the Middle of the Screen
+
+messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+
+
+// Positioning the Score Text. The score is placed at the top-left corner. Unlike messageText, this text doesn’t need to be centered.
+
+scoreText.setPosition(20, 20);
+
+
+
+
+D. Updating the Message When Time Runs Out
+-----------------------------------------
+
+// When time runs out (timeRemaining <= 0), the game pauses.
+
+
+if (timeRemaining <= 0.0f) {
+
+// Pause the game
+paused = true;
+
+// Change the message shown to the player
+
+messageText.setString("Out of time!!");
+
+
+//Reposition the text based on its new size
+// Since text size may change, we must recalculate its center using getLocalBounds().
+
+FloatRect textRect = messageText.getLocalBounds();
+
+messageText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+
+messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+
+}
+
+
+
+E. Dynamically Updating the Score. Update the score text (within if(!paused))
+--------------------------------------------
+
+std::stringstream ss;  //convert numbers into text (string format) easily
+
+ss << "Score = " << score; //score is an integer, but setString() in SFML requires a std::string.
+
+scoreText.setString(ss.str()); //Updates the score text in SFML. //Using stringstream, we can append text and numbers together without needing manual conversions.
+
+
+
+F. Draw scoreText and messageText
+--------------------------------
+
+// Draw the score
+window.draw(scoreText);
+
+
+// Draw the timebar
+window.draw(timeBar);
+
+
+if (paused)
+{
+// Draw our message
+window.draw(messageText);
+}
+
+// Show everything we just drew
+window.display();
+
+
+
+
+
+NOTE
+-----
+
+getLocalBounds() : Gives the size before transformations (local coordinates).
+
+Getting original object size before transformations.
+Returns a rectangle (FloatRect) representing width and height of the object in local space.
+gnores transformations (position, rotation, scaling).
+left and top are usually 0, unless special character spacing applies.
+
+
+
+getGlobalBounds() : Gives the size after transformations (global coordinates).
+
+Returns a rectangle (FloatRect) representing width and height of the object in world space.
+Includes transformations like position, rotation, and scaling.
+left and top represent the actual screen position of the object.
+
+
+
+Summary:
+------------
+
+Creates messageText (game messages) and scoreText (player's score).
+Loads a custom font (KOMIKAP_.ttf).
+Sets font, text, color, and size.
+Centers the message in the middle of the screen.
+Positions the score in the top-left corner.
+Updates the message to "Out of time!!" when the game ends.
+Dynamically updates the score using stringstream.
+
+
+
+
+
+
+
+
+Objective 8 : Branch Handling in SFML
+--------------------------------------
+
+Branches appear randomly on the left or right side of a tree. The player must avoid them while chopping the tree down.
+
+
+
+// Function declaration
+
+//This function updates the positions of 6 branches in a queue-like structure. Each time it is called:
+// Shifts existing branches down.
+// Generates a new branch at the top (left, right, or none).
+// Uses randomization (srand and rand) to decide the new branch position.
+
+void updateBranches(int seed);
+
+
+
+
+
+A. Declare Variables
+--------------------
+
+// NUM_BRANCHES = 6 : Keeps track of 6 branches at a time.
+// branches[] :  Array to store branch sprites
+
+const int NUM_BRANCHES = 6;
+Sprite branches[NUM_BRANCHES];
+
+
+// Where is the player/branch? Left or Right 
+// branchPositions[] : Array to stores the side (LEFT, RIGHT, NONE) of each branch.
+
+
+enum class side { LEFT, RIGHT, NONE }; //defines where the branches appear.
+side branchPositions[NUM_BRANCHES]; //stores each branch's current position.
+
+
+
+
+NOTE
+-----
+1. Let's say NUM_BRANCHES = 6, then the array is initialized as: This means all branches are initially empty.
+
+branchPositions[6] = { NONE, NONE, NONE, NONE, NONE, NONE };
+
+
+2. The function updateBranches() shifts all values down and assigns a new random value to branchPositions[0]:
+
+// Example after calling updateBranches()
+
+branchPositions[6] = { RIGHT, LEFT, NONE, RIGHT, LEFT, NONE };
+
+Branch at index 0 is on the right. Branch at index 1 is on the left...........
+
+
+3. Using branchPositions[] to Move Branch Sprites, This logic places the branch on the left, right, or hides it based on branchPositions[i].
+
+
+
+
+
+
+B. Initialize the Branches (Prepare 5 branches)
+-----------------------------------------------
+
+Texture textureBranch;
+textureBranch.loadFromFile("graphics/branch.png");
+
+
+// Set the texture for each branch sprite
+
+for (int i = 0; i < NUM_BRANCHES; i++) {
+	branches[i].setTexture(textureBranch);
+
+// Sets initial position to (-2000, -2000) to hide them.
+
+	branches[i].setPosition(-2000, -2000);
+
+
+// Sets origin to (220, 20) to ensure rotation happens around the center.
+// We can then spin it round without changing its position
+
+	branches[i].setOrigin(220, 20);
+}
+
+
+
+
+
+
+C. Update Branch Positions (Function Call)
+-----------------------------
+
+// This prepares the first 5 branches before the game starts.
+// shifts existing branches down and adds a new random branch.
+
+updateBranches(1);
+updateBranches(2);
+updateBranches(3);
+updateBranches(4);
+updateBranches(5);
+
+
+
+D. Placing the Branches in the Game
+---------------------------------
+
+
+for (int i = 0; i < NUM_BRANCHES; i++)
+{
+
+// Each branch is spaced 150 pixels apart in height.
+
+float height = i * 150;
+
+
+Index  Height (Y)
+0      0
+1      150
+2      300
+3      450
+4      600
+5      750
+
+
+// Position the Branches
+// Left branches are placed at X = 600. Rotated 180° to face left.
+
+if (branchPositions[i] == side::LEFT)
+{
+branches[i].setPosition(600, height);
+branches[i].setRotation(180);
+}
+
+
+// Right branches are placed at X = 1330. Rotation is 0° (default image).
+
+else if (branchPositions[i] == side::RIGHT)
+{
+branches[i].setPosition(1330, height);
+branches[i].setRotation(0);
+}
+
+
+// Branches with NONE disappear by setting X = 3000.
+
+else
+{
+// Hide the branch
+branches[i].setPosition(3000, height);
+}
+}
+
+
+
+
+
+NOTE:
+
+Position Type		X-Value 		Y-Value 
+
+Left Branch		600 			height 
+Right Branch		1330 			height
+Hidden Branch		3000 			height
+
+
+
+
+Calculation:
+-----------
+
+The game screen is 1920 pixels wide.
+The tree is placed at the center of the screen.
+The tree width is estimated to be around 80 pixels.
+A branch width is estimated to be around 400 pixels.
+
+
+Obj1: We want the left branch to attach to the left side of the tree.
+------------------------------------------------------------
+
+
+Tree center X-position = 1920/2 = 960
+
+Half of tree width = 80/2 = 40
+
+Branch width offset = The branch sprite's width might be around 300–400 pixels.
+
+x = 960 − (half the tree width − branch width offset) = 960 − 40 − 320 = 600
+
+
+
+
+Obj2: We want the right branch to attach to the right side of the tree.
+--------------------------------------------------------------------
+
+Tree center X-position = 960
+
+Half of tree width = 80/2 = 40
+
+Branch width offset = The branch should extend rightward (330 pixels).
+
+x= 960 + (40 + 330) = 1330
+
+
+
+
+obj3 : branches[i].setOrigin(220, 20);
+-------------------------------------------
+
+The branch rotates from its center rather than the default top-left corner.
+
+setOrigin(x, y) function changes the pivot point (the reference point for positioning and rotation) of a sprite. 
+
+By default, SFML positions sprites from the top-left corner (0,0). 
+
+Changing the origin allows correct alignment and rotation.
+
+
+Example : 
+
+The branch texture size is 440 pixels wide and 40 pixels tall.
+
+Branch Width=440 pixels
+Branch Height=40 pixels
+
+
+
+X-Origin Calculation
+----------------------
+We want the branch to rotate from the middle of its left edge when placed on the left side of the tree. We want the rotation pivot at the center of the branch.
+
+The center of the branch horizontally is
+
+X-Origin = Branch Width/2 = 220
+
+This means rotation will happen around the center of the branch horizontally.
+
+
+
+Y-Origin Calculation
+----------------------
+
+The sprite has a height of 40 pixels.
+
+The center of the branch vertically is
+
+Y-Origin = Branch Height/2 = 20
+
+
+
+
+E. Draw the branches
+------------------------
+
+window.draw(spriteCloud3);
+
+// Draw the branches
+
+for (int i = 0; i < NUM_BRANCHES; i++) {
+
+window.draw(branches[i]);
+
+}
+
+// Draw the tree
+window.draw(spriteTree);
+
+
+
+F. Function definition (Outside main function)
+------------------------
+
+
+void updateBranches(int seed)
+{
+	// Move all the branches down one place
+
+	for (int j = NUM_BRANCHES - 1; j > 0; j--) {
+		branchPositions[j] = branchPositions[j - 1];
+	}
+
+
+	// Spawn a new branch at position 0
+	// LEFT, RIGHT or NONE
+
+	srand((int)time(0) + seed);
+	int r = (rand() % 5);
+
+	switch (r) {
+	case 0:
+		branchPositions[0] = side::LEFT;
+		break;
+
+	case 1:
+		branchPositions[0] = side::RIGHT;
+		break;
+
+	default:
+		branchPositions[0] = side::NONE;
+		break;
+	}
+
+
+}
+
+
+
+NOTE
+-----
+
+Step1 : Suppose the branchPositions before update:
+------------------------------------------ 
+
+If branches are stored as:
+
+Index:   0     1     2     3     4     5
+Old:   LEFT  NONE  RIGHT  LEFT  NONE  NONE
+
+
+After shifting: The topmost branch (index 0) is now empty and will be randomized.
+
+Index:   0     1     2     3     4     5
+New:   ???   LEFT  NONE  RIGHT  LEFT  NONE
+
+
+
+Step 2: Generate a Random Branch at Index 0
+----------------------------------
+
+srand(time(0) + seed) : Seeds the random number generator that ensuring different results each time.
+rand() % 5 : Generates a number between 0 and 4.
+
+
+srand((int)time(0) + seed);
+int r = (rand() % 5);
+
+
+
+Step 3: Assign Side Based on Random Value
+--------------------------------------
+
+0 : Branch spawns on the left.
+1 : Branch spawns on the right.
+2, 3, 4 : No branch.
+
+
+    switch (r) {
+        case 0:
+            branchPositions[0] = side::LEFT;
+            break;
+        case 1:
+            branchPositions[0] = side::RIGHT;
+            break;
+        default:
+            branchPositions[0] = side::NONE;
+            break;
+    }
+}
+
+
+
+
+Example :
+----------
+
+How updateBranches() shifts them down ??
+
+
+Suppose each branch is represented by L (LEFT), R (RIGHT), or _ (NONE).
+
+1. Initial State (Before Update)
+
+[ ]  (0)   _  (Empty)
+[ ]  (1)   L  (Left)
+[ ]  (2)   R  (Right)
+[ ]  (3)   _  (Empty)
+[ ]  (4)   L  (Left)
+[ ]  (5)   _  (Empty)
+
+Now, calling updateBranches() shifts everything down.
+
+
+2. Shift Existing Branches Down: Everything moves one position down:
+
+[ ]  (0)   ???  (New branch, randomly assigned)
+[ ]  (1)   _    (Old 0 moved to 1)
+[ ]  (2)   L    (Old 1 moved to 2)
+[ ]  (3)   R    (Old 2 moved to 3)
+[ ]  (4)   _    (Old 3 moved to 4)
+[ ]  (5)   L    (Old 4 moved to 5)
+
+
+3. Generate a New Branch at Index 0: Let's assume rand() % 5 gives 1, which means a Right branch (R).
+
+[ ]  (0)   R
+[ ]  (1)   _
+[ ]  (2)   L
+[ ]  (3)   R
+[ ]  (4)   _
+[ ]  (5)   L
+
+
+4. Step 3: Place Branch Sprites
+
+Index	Position (X, Y)	Rotation	Visible?
+0	(1330, 0)	0°	     (Right)
+1	(3000, 150)	-	     (Hidden)
+2	(600, 300)	180°	     (Left)
+3	(1330, 450)	0°	     (Right)
+4	(3000, 600)	-	     (Hidden)
+5	(600, 750)	180°	     (Left)
+
+
+
+
+
+
+Objective 9 : Branch Handling in SFML
+--------------------------------------
+
+A. Preparing the Player
+-----------------------
+
+    Texture texturePlayer;
+    texturePlayer.loadFromFile("graphics/player.png");
+    Sprite spritePlayer;
+    spritePlayer.setTexture(texturePlayer);
+    spritePlayer.setPosition(580, 720);
+
+
+B. Setting the Initial Player Side
+----------------------------------
+
+    side playerSide = side::LEFT;
+
+
+C. Preparing the Gravestone
+--------------------------
+
+// This gravestone is drawn when the player "dies" in the game.
+
+    Texture textureRIP;
+    textureRIP.loadFromFile("graphics/rip.png");
+    Sprite spriteRIP;
+    spriteRIP.setTexture(textureRIP);
+    spriteRIP.setPosition(600, 860);
+
+
+D. Preparing the Axe
+-------------------
+
+// The axe sprite is positioned near the player.
+
+    Texture textureAxe;
+    textureAxe.loadFromFile("graphics/axe.png");
+    Sprite spriteAxe;
+    spriteAxe.setTexture(textureAxe);
+    spriteAxe.setPosition(700, 830);
+
+
+Constants for Axe Positions
+------------------------------
+
+//Define two fixed positions where the axe will be placed depending on whether the player is on the left or right.
+// Line the axe up with the tree
+
+    const float AXE_POSITION_LEFT = 700;
+    const float AXE_POSITION_RIGHT = 1075;
+
+
+E. Preparing the Flying Log
+--------------------------
+
+// The log appears initially in a set position before it starts flying when the player chops the tree.
+
+    Texture textureLog;
+    textureLog.loadFromFile("graphics/log.png");
+    Sprite spriteLog;
+    spriteLog.setTexture(textureLog);
+    spriteLog.setPosition(810, 720);
+
+
+// Some other useful log related variables
+
+// logActive: Controls whether the log is currently moving.
+// logSpeedX, logSpeedY: Determine how fast the log moves.
+// acceptInput: Indicates whether the game is currently accepting user input
+
+    bool logActive = false;
+    float logSpeedX = 1000;
+    float logSpeedY = -1500;
+    bool acceptInput = false;
+
+
+F. Handlings events
+-------------------
+
+Event Loop: Captures and processes user inputs.
+KeyReleased Event: Triggers when a key is released.
+acceptInput: Enables the player to make new moves.
+spriteAxe.setPosition(2000, y): Moves the axe off-screen.
+
+
+ Event event;
+        while (window.pollEvent(event))
+        {
+
+            if (event.type == Event::KeyReleased && !paused)
+            {
+                // Listen for key presses again
+                acceptInput = true;
+
+                // hide the axe
+                spriteAxe.setPosition(2000,
+                                      spriteAxe.getPosition().y);
+            }
+        }
+        
+// Handling Window Close Event
+// Detects if the window close button was clicked and closes the game window.
+
+        Event event1;
+        while (window.pollEvent(event1))
+        {
+            if (event1.type == event1.Closed)
+            {
+                window.close();
+            }
+        }
+
+
+
+G. Handling Player Input
+------------------------
+
+// Make sure we are accepting input
+
+        if (acceptInput)
+        {
+            // More code here next...
+            
+	   // First handle pressing the right cursor key
+
+            if (Keyboard::isKeyPressed(Keyboard::Right))
+            {
+                // Sets the player's side to right so the game knows the player's position.
+                playerSide = side::RIGHT;
+
+		// Increases the player's score when they make a move.
+                score++;
+
+                // Add to the amount of time remaining. Adds time based on score. Adds time to the countdown timer.
+		// The additional time decreases as the score increases, making the game more difficult over time.
+		// adds extra time to the game timer whenever the player makes a move.
+
+At low scores, the player gets a lot of bonus time.
+As the score increases, the bonus time shrinks, making the game progressively harder.
+The player has to chop faster to keep up with the decreasing time bonus.
+
+2 / score
+
+The additional time decreases as the score increases.
+At low scores, 2 / score is large, meaning more bonus time is given.
+At high scores, 2 / score is small, meaning less bonus time is given.
+This makes the game harder over time because the player gets less extra time.
+
++ 0.15
+
+Ensures that some time is always added, even at high scores.
+Prevents the bonus time from becoming too small when score is large.
+
+Score	2 / Score	Total Added Time ((2 / score) + 0.15)
+1	2.00		2.15
+2	1.00		1.15
+4	0.50		0.65
+10	0.20		0.35
+
+                timeRemaining += (2 / score) + .15;
+
+		// Moves the axe to the right. Moves the axe to the right to match the player’s position. 
+
+                spriteAxe.setPosition(AXE_POSITION_RIGHT,
+                                      spriteAxe.getPosition().y);
+
+		// Moves the player to the right. Moves the player sprite to the right side of the screen.
+
+                spritePlayer.setPosition(1200, 720);
+
+                // Calls updateBranches(score) to generate a new branch pattern after each chop.
+                updateBranches(score);
+
+                // set the log flying to the left (Log flies in the opposite direction)
+		// Moves the log to its starting position.
+		// Sets the log's speed (logSpeedX = -5000) to make it fly in the opposite direction. log moves at 5000 pixels per second in the X-direction.
+		// Activates the log (logActive = true) so that it starts moving.
+
+                spriteLog.setPosition(810, 720);
+                logSpeedX = -5000; // log moves left
+                logActive = true;
+
+		// Disables input until the log has finished moving.
+		// Prevents the player from making another move instantly.
+                acceptInput = false;
+
+                // Play a chop sound
+                // chop.play();
+            }
+
+
+
+            // Handle the left cursor key (Same way as right key)
+	    // Handling Left Arrow Key (Player Moves Left)
+
+            if (Keyboard::isKeyPressed(Keyboard::Left))
+            {
+                // Make sure the player is on the left
+                playerSide = side::LEFT;
+
+                score++;
+
+                // Add to the amount of time remaining
+                timeRemaining += (2 / score) + .15;
+
+                spriteAxe.setPosition(AXE_POSITION_LEFT,
+                                      spriteAxe.getPosition().y);
+
+                spritePlayer.setPosition(580, 720);
+
+                // update the branches
+                updateBranches(score);
+
+                // The log moves to its starting position and will fly to the right this time (logSpeedX = 5000).
+                spriteLog.setPosition(810, 720);
+                logSpeedX = 5000; // log moves right
+                logActive = true;
+
+		// Disables input until the log finishes moving.
+                acceptInput = false;
+
+                // Play a chop sound
+                //chop.play();
+            }
+        } //if (acceptInput)
+
+
+
+
+H. Handling the Log’s Movement
+-----------------------------
+
+// This section moves the log and resets it when it leaves the screen.
+
+
+// If logActive == true, the log is currently moving.
+
+ 	if (logActive)
+            {
+
+		// Moves the log horizontally by adjusting its x-position using the log speed.
+		// The dt.asSeconds() ensures frame-independent movement (log speed is adjusted based on time).
+
+                spriteLog.setPosition(
+                    spriteLog.getPosition().x + (logSpeedX * dt.asSeconds()),
+                    spriteLog.getPosition().y + (logSpeedY * dt.asSeconds()));
+
+
+                // Checks if the log goes off-screen (either too far left or right).
+
+                if (spriteLog.getPosition().x < -100 ||
+                    spriteLog.getPosition().x > 2000)
+                {
+                    // Deactivates the log (logActive = false) and resets its position, so it can be reused.
+
+                    logActive = false;
+                    spriteLog.setPosition(810, 720);
+                }
+            }
+
+
+
+I. Checking If the Player is Hit (Collision Detection between player & branch)
+--------------------------------
+
+This section determines if the player is squished by a branch.
+
+            // has the player been squished by a branch?
+
+	    //The 5th branch is the one at the player’s head level.
+ 	   // If that branch is on the same side as the player, the player is hit and loses.
+
+            if (branchPositions[5] == playerSide)
+            {
+                // death
+		// The game is paused, and input is disabled since the player has lost.
+
+                paused = true;
+                acceptInput = false;
+
+		// Displays the gravestone sprite and hides the player.
+
+                // Draw the gravestone
+                spriteRIP.setPosition(525, 760);
+
+                // hide the player
+                spritePlayer.setPosition(2000, 660);
+
+                // Change the text of the message
+                messageText.setString("SQUISHED!!");
+
+
+                // Center it on the screen
+		// Centers the game over message on the screen.
+
+                FloatRect textRect = messageText.getLocalBounds();
+
+                messageText.setOrigin(textRect.left +
+                                          textRect.width / 2.0f,
+                                      textRect.top + textRect.height / 2.0f);
+
+                messageText.setPosition(1920 / 2.0f,
+                                        1080 / 2.0f);
+
+                // Play the death sound
+                // death.play();
+            }
+        }
+
+
+
+
+
+window.clear();
+        window.draw(spriteBackground);
+
+        window.draw(spriteCloud1);
+        window.draw(spriteCloud2);
+        window.draw(spriteCloud3);
+        window.draw(spriteTree);
+
+        for (int i = 0; i < NUM_BRANCHES; i++)
+        {
+            window.draw(branches[i]);
+        }
+        window.draw(spritePlayer);
+        window.draw(spriteAxe);
+        window.draw(spriteLog);
+        window.draw(spriteRIP);
+        window.draw(spriteBee);
+        window.draw(scoreText);
+        window.draw(timeBar);
+        if (paused)
+        {
+            window.draw(messageText);
+        }
+
+        window.display();
+    }//while loop closed
+
+
+
+
+
+

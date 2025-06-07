@@ -1,0 +1,1876 @@
+SECTION 44 & 51
+
+
+Zombie Shooter Game
+-------------------
+
+There will be three types of zombies to splatter. They will have different attributes, such as appearance, health, and speed. We will call them chasers, bloaters, and crawlers.
+
+The player will shoot zombies while frantically running away from them.
+
+Move around a scrolling world using the WASD keyboard keys while aiming the gun using the mouse.
+
+In-between each level, the player will choose a "level-up" that will affect the way the game needs to be played for the player to win.
+
+The player will need to collect "pick-ups" to restore health and ammunition.
+
+
+NOTE
+----
+
+
+1. A texture that will build a wall around the arena. This texture is contained in a single graphic called a sprite sheet, along with the other background textures.
+
+2. The first of two mud textures from the sprite sheet.
+
+3. A grass texture, also from the sprite sheet.
+
+4. The second mud texture from the sprite sheet.
+
+5. The player's character.
+
+6. A crosshair, which the player aims with the mouse.
+
+7. A slow-moving, but strong, "bloater" zombie.
+
+8. A slightly faster-moving, but weaker, "crawler" zombie. There is also a "chaser zombie" that is very fast and weak. Unfortunately, I couldn't manage to get one in the screenshot before they were all killed.
+
+
+
+
+Objective 1: Display a blank full-screen game window
+----------------------------------------------------
+
+
+ZombieArena.cpp
+---------------
+
+
+#include <SFML/Graphics.hpp>
+using namespace sf;
+
+int main()
+{
+    // 1. Get the screen resolution
+    
+    Vector2f resolution;
+    resolution.x = VideoMode::getDesktopMode().width;
+    resolution.y = VideoMode::getDesktopMode().height;
+
+
+    // 2. Create a full-screen window
+    
+    RenderWindow window(VideoMode(resolution.x, resolution.y),"Zombie Arena");
+
+
+    // 3. Game loop (runs while window is open)
+    
+    while (window.isOpen())
+    {
+        // 4. Handle closing
+        
+        if (Keyboard::isKeyPressed(Keyboard::Escape))
+        {
+            window.close(); // Close when ESC is pressed
+        }
+
+
+        // 5. Clear the window and show it (blank screen)
+        
+        window.clear(Color::Black);
+        window.display();
+    }
+
+    return 0;
+}
+
+
+
+Objective 2: Display a player character sprite in the center of the screen.
+-----------------------------------------------------------------------
+
+We now see your player sprite centered on a black background.
+Pressing ESC still closes the game.
+
+
+m_Position : Stores the current position of the player on the screen (X and Y coordinates)
+m_Sprite : The visual representation (sprite) of the player to be drawn on the screen.
+m_Resolution : Stores the screen resolution so the player can be spawned or moved relative to the screen size.
+
+
+Player(): The class constructor used to initialize the player object when it's created.
+void spawn(Vector2f resolution) : initializes the player and places them at a starting position often the center of the screen.
+
+
+
+
+Step 1: Create Player.h
+--------------------------
+
+This will define the Player class structure.
+
+
+Player.h
+--------
+
+#pragma once
+
+#include <SFML/Graphics.hpp>
+using namespace sf;
+
+class Player
+{
+private:
+    Vector2f m_Position;
+    Sprite m_Sprite;
+    Texture m_Texture;
+    
+    Vector2f m_Resolution;
+
+public:
+    Player(); // Constructor
+
+    void spawn(Vector2f resolution); // Spawn player in center of screen
+    
+    Sprite getSprite();              // Return sprite to draw
+};
+
+
+
+
+Step 2: Create Player.cpp
+---------------------------
+
+This will load the player texture, center the sprite, and return it for drawing.
+
+
+Player.cpp
+----------
+
+
+#include "Player.h"
+
+
+Player::Player()
+{
+    // Load the texture
+    
+    m_Texture.loadFromFile("graphics/player.png");
+    m_Sprite.setTexture(m_Texture);
+
+    // Center the sprite origin
+    
+    m_Sprite.setOrigin(25, 25); // Assuming 50x50 image
+}
+
+
+void Player::spawn(Vector2f resolution)
+{
+    // Place player at the center of the screen
+    
+    m_Position.x = resolution.x / 2;
+    m_Position.y = resolution.y / 2;
+    m_Sprite.setPosition(m_Position);
+}
+
+
+Sprite Player::getSprite()
+{
+    return m_Sprite;
+}
+
+
+
+
+Step 3: Update ZombieArena.cpp to use Player
+--------------------------------------------
+
+Now include the Player class and draw it on the screen.
+
+
+FloatRect(left, top, width, height) defines a rectangle.
+Starts at position (0, 0)
+Has a width and height based on the desktop screen resolution.
+view shows the entire screen area starting from the top-left corner.
+
+
+
+ZombieArena.cpp
+---------------
+
+#include <SFML/Graphics.hpp>
+#include "Player.h"
+
+using namespace sf;
+
+int main()
+{
+    Vector2f resolution;
+    resolution.x = VideoMode::getDesktopMode().width;
+    resolution.y = VideoMode::getDesktopMode().height;
+
+    RenderWindow window(VideoMode(resolution.x, resolution.y),
+                        "Zombie Arena", Style::Fullscreen);
+                        
+
+    // View to follow the player (for now, static)
+    
+    View mainView(FloatRect(0, 0, resolution.x, resolution.y));
+
+    // Create a player and spawn it
+    
+    Player player;
+    player.spawn(resolution);
+
+
+    while (window.isOpen())
+    {
+        // Exit condition
+        
+        if (Keyboard::isKeyPressed(Keyboard::Escape))
+        {
+            window.close();
+        }
+
+        // DRAW
+        window.clear(Color::Black);
+        window.setView(mainView);
+        window.draw(player.getSprite());
+        window.display();
+    }
+
+    return 0;
+}
+
+
+
+
+Objective 3: Move the Player with W,A,S,D keys
+---------------------------------------------
+
+Allow the player to move around the screen using the W, A, S, D keys.
+The player moves smoothly using W, A, S, D keys.
+Still centered in a black arena.
+Player doesn't rotate yet, and can't go outside screen.
+
+
+Step 1: Add Movement Flags to Player.h
+----------------------------------------
+
+Update the Player class to store which keys are pressed.
+
+
+Player.h
+--------
+
+// Add to Player class (inside private:)
+
+bool m_UpPressed;
+bool m_DownPressed;
+bool m_LeftPressed;
+bool m_RightPressed;
+
+float m_Speed = 200; // pixels per second
+
+// Add public functions (inside public:)
+
+void moveLeft();
+void moveRight();
+void moveUp();
+void moveDown();
+void stopLeft();
+void stopRight();
+void stopUp();
+void stopDown();
+
+void update(float elapsedTime);
+
+
+
+Step 2: Implement Movement in Player.cpp
+----------------------------------------
+
+
+Player.cpp
+----------
+
+// Movement setters
+
+void Player::moveLeft() 
+{ 
+	m_LeftPressed = true; 
+}
+void Player::moveRight() { m_RightPressed = true; }
+void Player::moveUp() { m_UpPressed = true; }
+void Player::moveDown() { m_DownPressed = true; }
+
+void Player::stopLeft() { m_LeftPressed = false; }
+void Player::stopRight() { m_RightPressed = false; }
+void Player::stopUp() { m_UpPressed = false; }
+void Player::stopDown() { m_DownPressed = false; }
+
+
+void Player::update(float elapsedTime)
+{
+    // Move based on pressed keys
+
+    if (m_UpPressed)
+        m_Position.y -= m_Speed * elapsedTime;
+
+    if (m_DownPressed)
+        m_Position.y += m_Speed * elapsedTime;
+
+    if (m_LeftPressed)
+        m_Position.x -= m_Speed * elapsedTime;
+
+    if (m_RightPressed)
+        m_Position.x += m_Speed * elapsedTime;
+
+
+    // Apply the position to the sprite
+
+    m_Sprite.setPosition(m_Position);
+}
+
+
+
+
+Step 3: Handle Input in ZombieArena.cpp
+--------------------------------------
+
+Update the main loop to respond to key presses and update the player each frame.
+
+
+Modify ZombieArena.cpp
+----------------------
+
+
+Add a Clock to measure elapsed time
+----------------------------------
+
+Clock clock;
+
+
+
+Update the game loop:
+--------------------
+
+while (window.isOpen())
+{
+    // Handle input (WASD Pressing)
+    
+    if (Keyboard::isKeyPressed(Keyboard::W)) 
+	player.moveUp();
+    else 
+	player.stopUp();
+
+    if (Keyboard::isKeyPressed(Keyboard::S)) 
+	player.moveDown();
+    else 
+	player.stopDown();
+
+    if (Keyboard::isKeyPressed(Keyboard::A)) player.moveLeft();
+    else player.stopLeft();
+
+    if (Keyboard::isKeyPressed(Keyboard::D)) player.moveRight();
+    else player.stopRight();
+
+
+    // Exit condition
+    
+    if (Keyboard::isKeyPressed(Keyboard::Escape))
+        window.close();
+
+    // Update player position
+    
+    Time dt = clock.restart(); // Time since last frame
+    float dtSeconds = dt.asSeconds();
+    player.update(dtSeconds);
+
+    // DRAW
+    
+    window.clear(Color::Black);
+    window.setView(mainView);
+    window.draw(player.getSprite());
+    window.display();
+}
+
+
+
+STEP 4: Rotate Player to Face the Mouse
+---------------------------------------
+
+
+In this step, make the player rotate to face the mouse pointer on the screen. This gives game that classic top-down shooter feel.
+
+Adjust the Player class so that it calculates the angle between the player’s current position (center of screen) and the mouse position, then applies that angle to the sprite’s rotation.
+
+Modify Player.h so the update() function can also receive the mouse position.
+
+
+Player.h
+--------
+
+void update(float elapsedTime, Vector2i mousePosition);
+
+
+Now update the implementation in Player.cpp so the sprite rotates based on where the mouse is.
+
+
+Player.cpp
+----------
+
+void Player::update(float elapsedTime, Vector2i mousePosition)
+{
+    // Handle movement
+    
+    if (m_UpPressed) 
+	m_Position.y -= m_Speed * elapsedTime;
+
+    if (m_DownPressed) 
+	m_Position.y += m_Speed * elapsedTime;
+
+    if (m_LeftPressed) 
+	m_Position.x -= m_Speed * elapsedTime;
+
+    if (m_RightPressed) 
+	m_Position.x += m_Speed * elapsedTime;
+
+    m_Sprite.setPosition(m_Position);
+
+
+    // Calculate angle to rotate toward the mouse
+    
+    float angle = (atan2(mousePosition.y - m_Resolution.y / 2,
+                         mousePosition.x - m_Resolution.x / 2) * 180) / 3.141;
+
+    m_Sprite.setRotation(angle);
+}
+
+
+
+Why subtract m_Resolution / 2?
+-----------
+
+Because the view is centered on the player, the player is drawn at the center of the screen. We use that center as our reference point for rotation.
+
+
+Capture the Mouse Position in the Game Loop
+(need to pass the mouse position into player.update() from ZombieArena.cpp)
+
+
+
+ZombieArena.cpp
+---------------
+
+Clock clock;
+
+while (window.isOpen())
+{
+    // Handle input
+    if (Keyboard::isKeyPressed(Keyboard::W)) player.moveUp();
+    else player.stopUp();
+
+    if (Keyboard::isKeyPressed(Keyboard::S)) player.moveDown();
+    else player.stopDown();
+
+    if (Keyboard::isKeyPressed(Keyboard::A)) player.moveLeft();
+    else player.stopLeft();
+
+    if (Keyboard::isKeyPressed(Keyboard::D)) player.moveRight();
+    else player.stopRight();
+
+    if (Keyboard::isKeyPressed(Keyboard::Escape)) window.close();
+
+
+    // Get time since last frame
+    
+    Time dt = clock.restart();
+    float dtSeconds = dt.asSeconds();
+
+
+    // Pass current mouse position
+    
+    Vector2i mousePosition = Mouse::getPosition();
+
+    player.update(dtSeconds, mousePosition);
+
+
+    // Draw everything
+
+    window.clear(Color::Black);
+    window.setView(mainView);
+    window.draw(player.getSprite());
+    window.display();
+}
+
+
+
+
+
+Objective 5: Add a Background Arena
+-----------------------------------
+
+Add a large tiled background image that makes the game world feel like an arena.
+
+
+
+Step 1: Prepare a Background Tilesheet
+-------------------------------------
+
+Building a tile like a square image of mud1 or mud2 or grass using 4 vertices with positions accordingly.
+
+
+Each tile is 50 × 50 pixels.
+We are at tile (w, h) = (0, 0) top-left corner of the grid
+
+TILE_SIZE = 50
+
+
+Vertex numbering
+---------------
+
+[0]-----[1]
+ |       |
+[3]-----[2]
+
+
+
+Tile (w=0, h=0) with TILE_SIZE = 50
+-----------------------------------
+
+
+   (0,0)             (50,0)
+     ●----------------●
+     |                |
+     |     MUD1       |
+     |                |
+     ●----------------●
+   (0,50)            (50,50)
+
+
+
+Vertex Array Indexes
+--------------------
+
+
+   rva[0]           rva[1]
+     ●----------------●
+     |                |
+     |                |
+     |                |
+     ●----------------●
+   rva[3]           rva[2]
+
+
+
+If we place a second tile next to it- (w=1, h=0)
+-----------------------------------------------
+
+mud1 :  Position(w,h) = (0,0) - Vector2f(0,0)
+grass : Position(w,h) = (1,0) - Vector2f(50,0)
+mud2 :  Position(w,h) = (2,0) - Vector2f(100,0)
+
+
+Placing 3 tiles horizontally on the top row (h = 0)
+
+
+
+   (0,0)     (50,0)     (100,0)    (150,0)
+     ●--------●----------●----------●
+     | MUD1   |  GRASS   |  MUD2      |
+     |        |          |            |
+     ●--------●----------●----------●
+   (0,50)   (50,50)    (100,50)   (150,50)
+
+
+
+Each tile is created using 4 vertices; like this for mud2 (at w = 2)
+
+
+// MUD2 starts at (w=2, h=0)
+
+rva[0].position = Vector2f(2 * 50, 0 * 50);         // (100, 0)
+
+rva[1].position = Vector2f(2 * 50 + 50, 0 * 50);    // (150, 0)
+
+rva[2].position = Vector2f(2 * 50 + 50, 0 * 50 + 50);    // (150, 50)
+
+rva[3].position = Vector2f(2 * 50, 0 + 50);         // (100, 50)
+
+
+
+// Top-left
+rva[0].position = Vector2f(w * TILE_SIZE, h * TILE_SIZE);
+
+// Top-right
+rva[1].position = Vector2f(w * TILE_SIZE + TILE_SIZE, h * TILE_SIZE);
+
+// Bottom-right
+rva[2].position = Vector2f(w * TILE_SIZE + TILE_SIZE, h * TILE_SIZE + TILE_SIZE);
+
+// Bottom-left
+rva[3].position = Vector2f(w * TILE_SIZE, h * TILE_SIZE + TILE_SIZE);
+
+
+
+
+A grid (1 tile, 4 vertices) is being constructed using two nested for loops
+--------------------------------------------------------------------------
+
+for (int w = 0; w < worldWidth; w++)
+{
+    for (int h = 0; h < worldHeight; h++)
+    {
+        rVA[cv++].position = Vector2f(w * TILE_SIZE, h * TILE_SIZE);
+    }
+}
+
+
+Vertices are placed at
+---------------------
+
+Each quad is made by placing 4 corners based on (x, y) tile location.
+
+
+Top-left: (x * 50, y * 50)
+Top-right: ((x+1)50, y50)
+Bottom-right: ((x+1)*50, (y+1)*50)
+Bottom-left: (x*50, (y+1)*50)
+
+
+background[currentVertex + 0].position = Vector2f(x * 50, y * 50);
+background[currentVertex + 1].position = Vector2f((x + 1) * 50, y * 50);
+background[currentVertex + 2].position = Vector2f((x + 1) * 50, (y + 1) * 50);
+background[currentVertex + 3].position = Vector2f(x * 50, (y + 1) * 50);
+
+
+
+
+
+Textures for each tile
+---------------------
+
+Determine what type of tile to draw at each grid location (tileType).
+Set texture coordinates (texCoords) to map the appropriate part of the tile sheet to that tile.
+Render the background using a vertex array.
+
+
+Tile Types
+-----------
+
+tileType = 0 or 1 - floor (randomly chosen)
+tileType = 2 - wall (if on map border)
+
+
+Texture Coordinates
+-------------------
+
+The tiles are selected from a tile sheet (a large image containing smaller tile images arranged in a grid).
+Each tile has dimensions TILE_SIZE x TILE_SIZE (50x50 pixels).
+
+Texture coordinates are calculated
+
+tu * TILE_SIZE -  X-offset of tile in the tile sheet
+
+tv * TILE_SIZE -  Y-offset of tile (always 0)
+
+
+
+Horizontal row of 3 tiles
+-------------------------
+
+---------------------------------
+|  Tile 0 |  Tile 1 |  Tile 2 |
+|  Floor  |  Floor  |  Wall   |
+----------------------------------
+     0        1         2       X (tu)
+     |
+     tv = 0 (row index is constant)
+
+
+
+Each tile is accessed using (tu, tv):
+
+Tile 0 - (0, 0)
+Tile 1 - (1, 0)
+Tile 2 - (2, 0)
+
+
+Texture coordinates for a quad (4 corners) are-
+
+Top-left:     (tu * TILE_SIZE, tv * TILE_SIZE)
+Top-right:    ((tu+1) * TILE_SIZE, tv * TILE_SIZE)
+Bottom-right: ((tu+1) * TILE_SIZE, (tv+1) * TILE_SIZE)
+Bottom-left:  (tu * TILE_SIZE, (tv+1) * TILE_SIZE)
+
+
+
+
+IntRect Class
+-------------
+
+Represents a rectangle using integers defined by
+
+Top-left corner (left, top)
+Width and height
+
+IntRect arena(0, 0, 1000, 1000);
+
+
+
+VertexArray Class
+-----------------
+
+VertexArray like a list of squares (tiles) made from points. 
+Each square (called a quad) is made from 4 corners, and each corner is a vertex.
+
+Each vertex has:
+
+A position (where to draw it)
+A texture coordinate (what part of the image to show)
+
+
+Stores a collection of vertices (points with position, color, and texture coordinates) used for drawing shapes or images.
+
+
+We have a large image (tile sheet) like this: 
+
+--------------------------------
+|  Tile 0 |  Tile 1 |  Tile 2 |
+--------------------------------
+
+Then our task is : uses pieces of this image to fill the 1000×1000 arena with tiles using VertexArray.
+
+
+6×4 grid (Width=6, Height=4)
+----------------------------
+
+All inner tiles (w > 0 && w < worldWidth - 1 && h > 0 && h < worldHeight - 1) get random floor textures.
+
+w = 0         1       2       3       4       5
+h
+=0     🟫     🟫     🟫     🟫     🟫     🟫
+=1     🟫     🟩     🟩     🟩     🟩     🟫
+=2     🟫     🟩     🟩     🟩     🟩     🟫
+=3     🟫     🟫     🟫     🟫     🟫     🟫
+
+
+
+Top edge: h == 0
+Bottom edge: h == worldHeight - 1
+Left edge: w == 0
+Right edge: w == worldWidth - 1
+
+A single image texture file stacked vertically like:
+
+  ----------------------  y = 0
+  |     Mud1 (0)        |
+  ----------------------  y = 50
+  |    Grass (1)       |
+  =---------------------  y = 100
+  |    Mud2 (2)       |
+  ----------------------  y = 150
+  |     Wall (3)       | used for borders
+  ----------------------
+
+
+Texture coordinates for a 50×50 square :
+
+ verticalOffset = mOrG * TILE_SIZE
+
+texCoords-
+
+0: (0, verticalOffset)
+1: (50, verticalOffset)
+2: (50, verticalOffset + 50)
+3: (0, verticalOffset + 50)
+
+
+when mOrG = 1 (grass)
+
+// Texture coordinates in the big image
+
+rVA[currentVertex + 0].texCoords = Vector2f(0, 50);    // top-left
+rVA[currentVertex + 1].texCoords = Vector2f(50, 50);   // top-right
+rVA[currentVertex + 2].texCoords = Vector2f(50, 100);  // bottom-right
+rVA[currentVertex + 3].texCoords = Vector2f(0, 100);   // bottom-left
+
+
+
+
+
+Step 2: Create createBackground.cpp
+------------------------------------
+
+This function builds a big rectangular arena using vertex arrays. 
+Each 50x50 tile is mapped from the tilesheet.
+
+
+createBackground.cpp
+--------------------
+
+#include "ZombieArena.h"
+
+int createBackground(VertexArray& rVA, IntRect arena)
+{
+	// Anything we do to rVA we are actually doing to background (in the main function)
+
+	// How big is each tile/texture
+
+	const int TILE_SIZE = 50;
+	const int TILE_TYPES = 3;
+	const int VERTS_IN_QUAD = 4;
+
+	int worldWidth = arena.width / TILE_SIZE;
+	int worldHeight = arena.height / TILE_SIZE;
+
+
+	// What type of primitive are we using?
+
+	rVA.setPrimitiveType(Quads);
+
+	// Set the size of the vertex array
+	rVA.resize(worldWidth * worldHeight * VERTS_IN_QUAD);
+
+	// Start at the beginning of the vertex array
+	int currentVertex = 0;
+
+	for (int w = 0; w < worldWidth; w++)
+	{
+		for (int h = 0; h < worldHeight; h++)
+		{
+			// Position each vertex in the current quad
+			rVA[currentVertex + 0].position = Vector2f(w * TILE_SIZE, h * TILE_SIZE);
+			rVA[currentVertex + 1].position = Vector2f((w * TILE_SIZE) + TILE_SIZE, h * TILE_SIZE);
+			rVA[currentVertex + 2].position = Vector2f((w * TILE_SIZE) + TILE_SIZE, (h * TILE_SIZE) + TILE_SIZE);
+			rVA[currentVertex + 3].position = Vector2f((w * TILE_SIZE), (h * TILE_SIZE) + TILE_SIZE);
+
+
+
+			// Define the position in the Texture to draw for current quad
+			// Either mud, stone, grass or wall
+
+
+			if (h == 0 || h == worldHeight - 1 || w == 0 || w == worldWidth - 1)
+			{
+				// Use the wall texture
+				rVA[currentVertex + 0].texCoords = Vector2f(0, 0 + TILE_TYPES * TILE_SIZE);
+				rVA[currentVertex + 1].texCoords = Vector2f(TILE_SIZE, 0 + TILE_TYPES * TILE_SIZE);
+				rVA[currentVertex + 2].texCoords = Vector2f(TILE_SIZE, TILE_SIZE + TILE_TYPES * TILE_SIZE);
+				rVA[currentVertex + 3].texCoords = Vector2f(0, TILE_SIZE + TILE_TYPES * TILE_SIZE);
+			}
+
+
+			else
+			{
+				// Use a random floor texture
+				srand((int)time(0) + h * w - h);
+
+				int mOrG = (rand() % TILE_TYPES);  // Get 0 (Mud1), 1 (Grass), or 2 (Mud2)
+
+				int verticalOffset = mOrG * TILE_SIZE; // Choose texture row- 0, 50, or 100
+
+				rVA[currentVertex + 0].texCoords = Vector2f(0, 0 + verticalOffset);
+				rVA[currentVertex + 1].texCoords = Vector2f(TILE_SIZE, 0 + verticalOffset);
+				rVA[currentVertex + 2].texCoords = Vector2f(TILE_SIZE, TILE_SIZE + verticalOffset);
+				rVA[currentVertex + 3].texCoords = Vector2f(0, TILE_SIZE + verticalOffset);
+
+			}
+
+			// Position ready for the next for vertices
+			currentVertex = currentVertex + VERTS_IN_QUAD;
+		}
+	}
+
+	return TILE_SIZE;
+}
+
+
+Step 3: Add Arena and Background
+---------------------------------
+
+Define arena
+Create background
+Load and apply texture
+Draw background before player
+
+
+
+ZombieArena.cpp
+---------------
+
+#include <SFML/Graphics.hpp>
+#include "Player.h"
+#include "createBackground.cpp" 
+using namespace sf;
+
+int main()
+{
+    Vector2f resolution;
+    resolution.x = VideoMode::getDesktopMode().width;
+    resolution.y = VideoMode::getDesktopMode().height;
+
+    RenderWindow window(VideoMode(resolution.x, resolution.y),
+                        "Zombie Arena", Style::Fullscreen);
+
+    View mainView(FloatRect(0, 0, resolution.x, resolution.y));
+
+    // Create Arena
+    IntRect arena(0, 0, 1000, 1000);
+
+    // Create background tiles from the arena
+    VertexArray background = createBackground(arena);
+
+    // Load background texture
+    Texture backgroundTexture;
+    backgroundTexture.loadFromFile("graphics/background_sheet.png");
+
+    // Create player
+    Player player;
+    player.spawn(resolution);
+
+    Clock clock;
+
+    while (window.isOpen())
+    {
+        // Controls
+        if (Keyboard::isKeyPressed(Keyboard::Escape)) window.close();
+        if (Keyboard::isKeyPressed(Keyboard::W)) player.moveUp(); else player.stopUp();
+        if (Keyboard::isKeyPressed(Keyboard::S)) player.moveDown(); else player.stopDown();
+        if (Keyboard::isKeyPressed(Keyboard::A)) player.moveLeft(); else player.stopLeft();
+        if (Keyboard::isKeyPressed(Keyboard::D)) player.moveRight(); else player.stopRight();
+
+        Time dt = clock.restart();
+        float dtSeconds = dt.asSeconds();
+
+        Vector2i mousePosition = Mouse::getPosition(window);
+        player.update(dtSeconds, mousePosition);
+
+        // Center the view on player
+        mainView.setCenter(player.getPosition());
+        window.setView(mainView);
+
+        // DRAWING
+        window.clear(Color::Black);
+
+
+        //Draw tiled background
+
+        window.draw(background, &backgroundTexture);
+
+
+        // Draw player
+        window.draw(player.getSprite());
+
+        window.display();
+    }
+
+    return 0;
+}
+
+
+
+
+window.draw(background, &backgroundTexture)
+------------------------------------------
+
+The draw function signature in SFML:
+
+void draw(const Drawable& drawable, const RenderStates& states = RenderStates::Default);
+
+
+passing the address of the texture using &backgroundTexture to indicate which texture should be applied to the vertex array when rendering.
+
+It's necessary because the draw function uses RenderStates which holds a pointer to the texture.
+
+RenderStates states;
+states.texture = &backgroundTexture;
+window.draw(background, states);
+
+
+
+
+
+
+Objective 6: Zombie Class
+--------------------------
+
+
+Step 1: Zombie.h and Zombie.cpp - Basic Zombie ClassDefined three types of zombies: Bloater, Chaser, Crawler with different speeds and health.
+
+spawn() to set zombie type, position, speed.
+update() to make zombies chase the player and rotate toward them.
+hit() to reduce health and mark as dead with blood texture.
+Getters for sprite, position, alive status.
+
+
+Step 2: createHorde.cpp - Zombie Spawner
+
+createHorde() creates an array of zombies.
+Spawns zombies randomly on arena edges.
+Assigns random zombie type and position for each one.
+
+
+Step 3: ZombieArena.cpp-  Main Game Loop
+
+Manages game states: GAME_OVER, LEVELING_UP, PAUSED, PLAYING.
+SFML window, views, background.
+Player and zombies.
+
+
+On LEVELING_UP: Initializes player and zombies.
+In PLAYING state: Updates delta time, player, zombies, and view.
+
+
+Handles input for movement (WASD), pausing, restarting.
+
+
+Game starts at GAME_OVER, moves to LEVELING_UP, then PLAYING.
+Player spawns, zombies are created and chase the player.
+Zombies rotate towards the player and move accordingly.
+
+
+
+
+Zombie.h
+--------
+
+
+#include <SFML/Graphics.hpp>
+using namespace sf;
+
+class Zombie
+{
+private:
+	// How fast is each zombie type?
+	const float BLOATER_SPEED = 40;
+	const float CHASER_SPEED = 80;
+	const float CRAWLER_SPEED = 20;
+
+	// How tough is each zombie type
+	const float BLOATER_HEALTH = 5;
+	const float CHASER_HEALTH = 1;
+	const float CRAWLER_HEALTH = 3;
+
+	// Make each zombie vary its speed slightly
+	const int MAX_VARRIANCE = 30;
+	const int OFFSET = 101 - MAX_VARRIANCE;
+
+	// Where is this zombie?
+	Vector2f m_Position;
+
+
+	// A sprite for the zombie
+	Sprite m_Sprite;
+
+	Texture m_Texture;
+
+	// How fast can this one run/crawl?
+	float m_Speed;
+
+	// How much health has it got?
+	float m_Health;
+
+	// Is it still alive?
+	bool m_Alive;
+
+	// Public prototypes go here	
+public:
+
+	// Handle when a bullet hits a zombie
+	bool hit();
+
+	// Find out if the zombie is alive
+	bool isAlive();
+
+	// Spawn a new zombie
+	void spawn(float startX, float startY, int type, int seed);
+
+	// Return a rectangle that is the position in the world
+	FloatRect getPosition();
+
+	// Get a copy of the sprite to draw
+	Sprite getSprite();
+
+	// Update the zombie each frame
+	void update(float elapsedTime, Vector2f playerLocation);
+};
+
+
+
+
+
+Zombie.cpp
+----------
+
+#include "zombie.h"
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+
+void Zombie::spawn(float startX, float startY, int type, int seed)
+{
+
+	switch (type)
+	{
+	case 0:
+		// Bloater
+		m_Texture.loadFromFile("graphics/bloater.png");
+
+
+		m_Speed = 40;
+		m_Health = 5;
+		break;
+
+	case 1:
+		// Chaser
+		m_Texture.loadFromFile("graphics/chaser.png");
+
+		m_Speed = 70;
+		m_Health = 1;
+		break;
+
+	case 2:
+		// Crawler
+		m_Texture.loadFromFile("graphics/crawler.png");
+
+		m_Speed = 20;
+		m_Health = 3;
+		break;
+	}
+
+	// Modify the speed to make the zombie unique
+	// Every zombie is unique. Create a speed modifier
+
+	srand((int)time(0) * seed);
+
+	// Somewhere between 80 an 100
+
+	float modifier = (rand() % MAX_VARRIANCE) + OFFSET;
+	
+	// Express as a fraction of 1
+
+	modifier /= 100; // Now equals between .7 and 1
+	m_Speed *= modifier;
+
+
+	m_Sprite.setTexture(m_Texture);
+
+	m_Position.x = startX;
+	m_Position.y = startY;
+
+	m_Sprite.setOrigin(25, 25);
+	m_Sprite.setPosition(m_Position);
+}
+
+bool Zombie::hit()
+{
+	m_Health--;
+
+	if (m_Health < 0)
+	{
+		// dead
+		m_Alive = false;
+		m_Texture.loadFromFile("graphics/blood.png");
+
+
+		return true;
+	}
+
+	// injured but not dead yet
+	return false;
+}
+
+
+bool Zombie::isAlive()
+{
+	return m_Alive;
+}
+
+
+FloatRect Zombie::getPosition()
+{
+	return m_Sprite.getGlobalBounds();
+}
+
+
+
+Sprite Zombie::getSprite()
+{
+	return m_Sprite;
+}
+
+
+
+
+void Zombie::update(float elapsedTime, Vector2f playerLocation)
+{
+	float playerX = playerLocation.x;
+	float playerY = playerLocation.y;
+
+	// Update the zombie position variables
+	if (playerX > m_Position.x)
+	{
+		m_Position.x = m_Position.x +
+			m_Speed * elapsedTime;
+	}
+
+	if (playerY > m_Position.y)
+	{
+		m_Position.y = m_Position.y +
+			m_Speed * elapsedTime;
+	}
+
+	if (playerX < m_Position.x)
+	{
+		m_Position.x = m_Position.x -
+			m_Speed * elapsedTime;
+	}
+
+	if (playerY < m_Position.y)
+	{
+		m_Position.y = m_Position.y -
+			m_Speed * elapsedTime;
+	}
+
+	// Move the sprite
+	m_Sprite.setPosition(m_Position);
+
+
+	// Face the sprite in the correct direction (**)
+
+	float angle = (atan2(playerY - m_Position.y,playerX - m_Position.x)* 180) / 3.141;
+
+	m_Sprite.setRotation(angle);
+
+}
+
+
+
+
+
+
+ZombieArena.h
+-------------
+
+#include "Zombie.h"
+
+using namespace sf;
+
+int createBackground(VertexArray& rVA, IntRect arena);
+
+
+# Spawn numZombies at random positions along the borders of the arena.
+# Randomly assign a zombie type (bloater, crawler, runner).
+# Return a pointer to the array of zombies so they can be tracked, updated, and rendered in the game.
+
+
+Zombie* createHorde(int numZombies, IntRect arena);
+
+
+
+
+
+createHorde.cpp   (To dynamically create and spawn a specified number of zombies in random positions around the edge of the arena)
+--------------
+
+## plays a critical role in generating a horde of zombies in zombie shooter game
+
+#include "ZombieArena.h"
+#include "Zombie.h"
+
+Zombie* createHorde(int numZombies, IntRect arena)
+{
+	Zombie* zombies = new Zombie[numZombies];
+
+
+	# Ensures zombies spawn slightly inside the arena edge (not outside screen bounds)
+
+	int maxY = arena.height - 20;
+	int minY = arena.top + 20;
+	int maxX = arena.width - 20;
+	int minX = arena.left + 20;
+
+	for (int i = 0; i < numZombies; i++)
+	{
+
+		// Which side should the zombie spawn
+		srand((int)time(0) * i);
+		int side = (rand() % 4);
+		float x, y;
+
+		switch (side)
+		{
+		case 0:
+			// left
+			x = minX;
+			y = (rand() % maxY) + minY;
+			break;
+
+		case 1:
+			// right
+			x = maxX;
+			y = (rand() % maxY) + minY;
+			break;
+
+		case 2:
+			// top
+			x = (rand() % maxX) + minX;
+			y = minY;
+			break;
+
+		case 3:
+			// bottom
+			x = (rand() % maxX) + minX;
+			y = maxY;
+			break;
+		}
+
+		// Bloater, crawler or runner
+		srand((int)time(0) * i * 2);
+		int type = (rand() % 3);
+
+		// Spawn the new zombie into the array
+		zombies[i].spawn(x, y, type, i);
+
+	}
+	return zombies;
+}
+
+
+
+
+ZombieArena.cpp (Main File)
+--------------------------
+
+#include <SFML/Graphics.hpp>
+#include "ZombieArena.h"
+#include "Player.h"
+
+using namespace sf;
+
+int main()
+{
+
+	// The game will always be in one of four states
+
+	enum class State { PAUSED, LEVELING_UP, GAME_OVER, PLAYING };
+
+	// Start with the GAME_OVER state
+
+	State state = State::GAME_OVER;
+
+	
+	// Get the screen resolution and create an SFML window
+
+	Vector2f resolution;
+	resolution.x = VideoMode::getDesktopMode().width;
+	resolution.y = VideoMode::getDesktopMode().height;
+
+	RenderWindow window(VideoMode(resolution.x, resolution.y),"Zombie Arena", Style::Fullscreen);
+
+	// Create a an SFML View for the main action
+
+	View mainView(sf::FloatRect(0, 0, resolution.x, resolution.y));
+
+	// Here is our clock for timing everything
+	Clock clock;
+	// How long has the PLAYING state been active
+	Time gameTimeTotal;
+
+	// Where is the mouse in relation to world coordinates
+	Vector2f mouseWorldPosition;
+
+	// Where is the mouse in relation to screen coordinates
+	Vector2i mouseScreenPosition;
+
+	// Create an instance of the Player class
+	Player player;
+
+	// The boundaries of the arena
+	IntRect arena;
+
+	// Create the background
+	VertexArray background;
+
+	// Load the texture for our background vertex array
+	Texture textureBackground;
+	textureBackground.loadFromFile("graphics/background_sheet.png");
+	
+
+	// Prepare for a horde of zombies
+
+	int numZombies;
+	int numZombiesAlive;
+	Zombie* zombies = NULL;
+
+
+	// The main game loop
+	while (window.isOpen())
+	{
+		/*
+		************
+		Handle input
+		************
+		*/
+
+		// Handle events
+		Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == Event::KeyPressed)
+			{
+				// Pause a game while playing
+
+				if (event.key.code == Keyboard::Return &&
+					state == State::PLAYING)
+				{
+					state = State::PAUSED;
+				}
+
+				// Restart while paused
+
+				else if (event.key.code == Keyboard::Return &&
+					state == State::PAUSED)
+				{
+					state = State::PLAYING;
+					// Reset the clock so there isn't a frame jump
+					clock.restart();
+				}
+
+				// Start a new game while in GAME_OVER state
+
+				else if (event.key.code == Keyboard::Return &&
+					state == State::GAME_OVER)
+				{
+					state = State::LEVELING_UP;
+				}
+
+				if (state == State::PLAYING)
+				{
+				}
+
+			}
+		}// End event polling
+
+
+		 // Handle the player quitting
+		if (Keyboard::isKeyPressed(Keyboard::Escape))
+		{
+			window.close();
+		}
+
+		// Handle controls while playing
+		if (state == State::PLAYING)
+		{
+			// Handle the pressing and releasing of the WASD keys
+			if (Keyboard::isKeyPressed(Keyboard::W))
+			{
+				player.moveUp();
+			}
+			else
+			{
+				player.stopUp();
+			}
+
+			if (Keyboard::isKeyPressed(Keyboard::S))
+			{
+				player.moveDown();
+			}
+			else
+			{
+				player.stopDown();
+			}
+
+			if (Keyboard::isKeyPressed(Keyboard::A))
+			{
+				player.moveLeft();
+			}
+			else
+			{
+				player.stopLeft();
+			}
+
+			if (Keyboard::isKeyPressed(Keyboard::D))
+			{
+				player.moveRight();
+			}
+			else
+			{
+				player.stopRight();
+			}
+
+		}// End WASD while playing
+
+		 // Handle the levelling up state
+		if (state == State::LEVELING_UP)
+		{
+			// Handle the player levelling up
+			if (event.key.code == Keyboard::Num1)
+			{
+				state = State::PLAYING;
+			}
+
+			if (event.key.code == Keyboard::Num2)
+			{
+				state = State::PLAYING;
+			}
+
+			if (event.key.code == Keyboard::Num3)
+			{
+				state = State::PLAYING;
+			}
+
+			if (event.key.code == Keyboard::Num4)
+			{
+				state = State::PLAYING;
+			}
+
+			if (event.key.code == Keyboard::Num5)
+			{
+				state = State::PLAYING;
+			}
+
+			if (event.key.code == Keyboard::Num6)
+			{
+				state = State::PLAYING;
+			}
+
+			if (state == State::PLAYING)
+			{
+				// Prepare thelevel
+				// We will modify the next two lines later
+
+				arena.width = 500;
+				arena.height = 500;
+				arena.left = 0;
+				arena.top = 0;
+
+				// Pass the vertex array by reference 
+				// to the createBackground function
+
+				int tileSize = createBackground(background, arena);
+
+				// Spawn the player in the middle of the arena
+
+				player.spawn(arena, resolution, tileSize);
+
+				// Create a horde of zombies
+
+				numZombies = 10;
+
+				// Delete the previously allocated memory (if it exists)
+
+				delete[] zombies;
+				zombies = createHorde(numZombies, arena);
+				numZombiesAlive = numZombies;
+
+				// Reset the clock so there isn't a frame jump
+				clock.restart();
+			}
+		}// End levelling up
+
+		 /*
+		 ****************
+		 UPDATE THE FRAME
+		 ****************
+		 */
+		if (state == State::PLAYING)
+		{
+			// Update the delta time
+			Time dt = clock.restart();
+			// Update the total game time
+			gameTimeTotal += dt;
+			// Make a decimal fraction of 1 from the delta time
+			float dtAsSeconds = dt.asSeconds();
+
+			// Where is the mouse pointer
+			mouseScreenPosition = Mouse::getPosition();
+
+			// Convert mouse position to world coordinates of mainView
+			mouseWorldPosition = window.mapPixelToCoords(
+				Mouse::getPosition(), mainView);
+
+			// Update the player
+			player.update(dtAsSeconds, Mouse::getPosition());
+
+			// Make a note of the players new position
+			Vector2f playerPosition(player.getCenter());
+
+			// Make the view centre around the player				
+			mainView.setCenter(player.getCenter());
+
+			// Loop through each Zombie and update them
+			for (int i = 0; i < numZombies; i++)
+			{
+				if (zombies[i].isAlive())
+				{
+					zombies[i].update(dt.asSeconds(), playerPosition);
+				}
+			}
+
+		}// End updating the scene
+
+		 /*
+		 **************
+		 Draw the scene
+		 **************
+		 */
+
+		if (state == State::PLAYING)
+		{
+			window.clear();
+
+			// set the mainView to be displayed in the window
+			// And draw everything related to it
+			window.setView(mainView);
+
+			// Draw the background
+			window.draw(background, &textureBackground);
+
+			// Draw the zombies
+			for (int i = 0; i < numZombies; i++)
+			{
+				window.draw(zombies[i].getSprite());
+			}
+
+			// Draw the player
+			window.draw(player.getSprite());
+		}
+
+		if (state == State::LEVELING_UP)
+		{
+		}
+
+		if (state == State::PAUSED)
+		{
+		}
+
+		if (state == State::GAME_OVER)
+		{
+		}
+
+		window.display();
+
+	}// End game loop
+
+	return 0;
+}
+
+
+
+
+
+Objective 7: Bullet Class
+--------------------------
+
+Bullet Initialization - A small rectangle (2x2) represents the bullet.
+
+Firing Mechanism (shoot) - Calculates direction and speed using gradient, then sets flight direction and limits.
+
+Flight Tracking - m_InFlight tracks if the bullet is currently moving.
+
+Position & Movement - Updates bullet's position per frame update(). Stops bullet if it travels beyond a 1000px range.
+
+
+getShape() - returns shape for drawing.
+getPosition() - returns bounds for collision checks.
+isInFlight() - checks if bullet is active.
+stop() - halts bullet flight.
+
+
+
+
+
+bullet.h
+-------
+
+#include <SFML/Graphics.hpp>
+using namespace sf;
+
+class Bullet
+{
+private:
+	// Where is the bullet?
+	Vector2f m_Position;
+
+	// What each bullet looks like
+	RectangleShape m_BulletShape;
+
+	// Is this bullet currently whizzing through the air
+	bool m_InFlight = false;
+
+	// How fast does a bullet travel?
+	float m_BulletSpeed = 1000;
+
+	// What fraction of 1 pixel does the bullet travel, 
+	// Horizontally and vertically each frame?
+	// These values will be derived from m_BulletSpeed
+
+	float m_BulletDistanceX;
+	float m_BulletDistanceY;
+
+	// Where is this bullet headed to?
+	float m_XTarget;
+	float m_YTarget;
+
+	// Some boundaries so the bullet doesn't fly forever
+	float m_MaxX;
+	float m_MinX;
+	float m_MaxY;
+	float m_MinY;
+
+// Public function prototypes go here
+public:
+	// The constructor
+	Bullet();
+
+	// Stop the bullet
+	void stop();
+
+	// Returns the value of m_InFlight
+	bool isInFlight();
+
+	// Launch a new bullet
+	void shoot(float startX, float startY,
+		float xTarget, float yTarget);
+
+	// Tell the calling code where the bullet is in the world
+	FloatRect getPosition();
+
+	// Return the actual shape (for drawing)
+	RectangleShape getShape();
+
+	// Update the bullet each frame
+	void update(float elapsedTime);
+
+};
+
+
+
+
+
+bullet.cpp
+----------
+
+#include "bullet.h"
+
+
+// The constructor
+
+Bullet::Bullet()
+{
+	m_BulletShape.setSize(sf::Vector2f(2, 2));
+}
+
+
+void Bullet::shoot(float startX, float startY, float targetX, float targetY)
+{
+	// Keep track of the bullet
+	m_InFlight = true;
+	m_Position.x = startX;
+	m_Position.y = startY;
+
+	// Calculate the gradient of the flight path
+
+	float gradient = (startX - targetX) / (startY - targetY);
+
+	// Any gradient less than zero needs to be negative
+
+	if (gradient < 0)
+	{
+		gradient *= -1;
+	}
+
+	// Calculate the ratio between x and t
+	float ratioXY = m_BulletSpeed / (1 + gradient);
+
+	// Set the "speed" horizontally and vertically
+	m_BulletDistanceY = ratioXY;
+	m_BulletDistanceX = ratioXY * gradient;
+	
+	// Point the bullet in the right direction
+	if (targetX < startX)
+	{
+		m_BulletDistanceX *= -1;
+	}
+
+	if (targetY < startY)
+	{
+		m_BulletDistanceY *= -1;
+	}
+
+	// Finally, assign the results to the
+	// member variables
+	//m_XTarget = targetX;
+	//m_YTarget = targetY;
+
+	// Set a max range of 1000 pixels
+	float range = 1000;
+	m_MinX = startX - range;
+	m_MaxX = startX + range;
+	m_MinY = startY - range;
+	m_MaxY = startY + range;
+	
+	// Position the bullet ready to be drawn
+	m_BulletShape.setPosition(m_Position);
+}
+
+void Bullet::stop()
+{
+	m_InFlight = false;
+}
+
+bool Bullet::isInFlight()
+{
+	return m_InFlight;
+}
+
+FloatRect Bullet::getPosition()
+{
+	return m_BulletShape.getGlobalBounds();
+}
+
+RectangleShape Bullet::getShape()
+{
+	return m_BulletShape;
+}
+
+
+void Bullet::update(float elapsedTime)
+{
+	// Update the bullet position variables
+	m_Position.x += m_BulletDistanceX * elapsedTime;
+	m_Position.y += m_BulletDistanceY * elapsedTime;
+
+
+	// Move the bullet
+	m_BulletShape.setPosition(m_Position);
+
+	// Has the bullet gone out of range?
+
+	if (m_Position.x < m_MinX || m_Position.x > m_MaxX ||
+		m_Position.y < m_MinY || m_Position.y > m_MaxY)
+	{
+		m_InFlight = false;
+	}
+
+}
+
+
+
+---------------------------
+
+SECTION 44 & 51
+
+
+
+
+
+
+
+
+

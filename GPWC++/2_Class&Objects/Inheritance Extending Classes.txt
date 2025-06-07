@@ -1,0 +1,534 @@
+Inheritance: Extending Classes
+-----------------------------
+
+
+Inheritance is the mechanism by which one class can acquire the properties [data and functions] of another class. It promotes code reusability and hierarchical classification.
+
+
+Base class - The class being inherited from.
+
+Derived class - The class that inherits.
+
+
+
+
+Defining Derived Classes
+----------------------
+
+class DerivedClass : accessSpecifier BaseClass 
+{
+    
+	[Members of derived class]
+};
+
+
+
+Example:
+-------
+
+#include <iostream>
+using namespace std;
+
+
+class Character 
+{
+
+public:
+    void move() 
+    {
+        cout << "Character moves\n";
+    }
+};
+
+
+class Player : public Character 
+{
+public:
+    void attack() 
+    {
+        cout << "Player attacks\n";
+    }
+};
+ 
+
+int main() 
+{
+    Player p;
+
+    p.move();
+    p.attack();
+
+    return 0;
+}
+
+
+
+
+
+
+Single Inheritance
+-----------------
+
+Single inheritance is when a class inherits from one base class only.
+
+
+class Character 
+{
+public:
+    void health() 
+    { 
+	cout << "Character has health"; 
+    }
+};
+
+
+class Enemy : public Character 
+{
+public:
+    void taunt() 
+    { 
+      cout << "Enemy taunts the player\n"; 
+    }
+};
+
+
+
+
+
+
+Making a Private Member Inheritable
+----------------------------------
+
+
+class Character 
+{
+protected:
+    int health = 100;
+};
+
+
+class Player : public Character 
+{
+public:
+    void showHealth() 
+    {
+        cout << "Player health: " << health << endl;
+    }
+};
+
+
+
+int main() 
+{
+    Player p;
+    cout << p.health << endl;  ???
+    return 0;
+}
+
+
+protected members are accessible to derived classes [like Player] but not accessible from outside the class hierarchy.
+
+
+int main() 
+{
+    Player p;
+
+    p.showHealth();  
+
+    return 0;
+}
+
+
+
+
+
+#include <iostream>
+using namespace std;
+
+
+class Character 
+{
+private:
+    int privateHealth = 100;
+
+protected:
+    int protectedHealth = 150;
+
+public:
+    void showBaseHealth() 
+   {
+        cout << "Private Health " << privateHealth << endl;
+        cout << "Protected Health " << protectedHealth << endl;
+    }
+};
+
+
+
+class Player : public Character {
+public:
+    void showHealth() 
+   {
+        // cout << "Private Health: " << privateHealth << endl; 
+        cout << "Protected Health (in derived): " << protectedHealth << endl;
+    }
+};
+
+
+int main() 
+{
+    Player p;
+    cout << p.privateHealth << endl;   ?
+    cout << p.protectedHealth << endl; ?
+
+    p.showBaseHealth(); 
+    p.showHealth();     
+
+    return 0;
+}
+
+
+
+
+
+
+Multilevel Inheritance
+----------------------
+
+A derived class becomes the base class for another class.
+
+
+Game structure: 
+
+Entity -> Character -> Boss
+
+
+
+class Entity 
+{
+public:
+    void spawn() 
+    { 
+	cout << "Entity spawned"; 
+    }
+};
+
+
+class Character : public Entity 
+{
+public:
+    void walk() 
+    { 
+	cout << "Character walks"; 
+     }
+};
+
+
+class Boss : public Character 
+{
+public:
+    void roar() 
+    { 
+        cout << "Boss roars"; 
+    }
+};
+
+
+
+
+
+
+
+
+Multiple Inheritance
+--------------------
+
+A class can inherit from more than one class.
+
+
+class Character 
+{
+public:
+    void jump() 
+    { 
+	cout << "Jumping\n"; 
+    }
+};
+
+
+class Inventory 
+{
+public:
+    void showItems() 
+    { 
+	cout << "Showing items\n"; 
+    }
+};
+
+
+class Player : public Character, public Inventory { };
+
+
+
+Player p; 
+p.jump(); 
+p.showItems(); 
+
+print?
+
+
+
+
+
+
+Hierarchical Inheritance
+------------------------
+
+Multiple derived classes from one base class.
+
+
+Player may inherit from both Character and Inventory.
+
+Character can have derived classes: Player, Enemy, NPC.
+
+
+
+class Character 
+{
+public:
+    void speak() 
+    { 
+	cout << "Character speaks\n"; 
+    }
+};
+ 
+
+class Player : public Character {}; 
+
+class Enemy : public Character {};
+
+
+
+Can Enemy call speak() ????
+
+
+
+int main() 
+{
+    Enemy e;
+    e.speak();  
+
+    return 0;
+}
+
+
+
+
+
+
+Constructors in Derived Classes
+------------------------------
+
+Call base constructor before derived.
+
+
+class GameObject 
+{
+public:
+    GameObject() 
+    { 
+	cout << "GameObject created"; 
+    }
+};
+
+
+
+class Enemy : public GameObject 
+{
+public:
+    Enemy() 
+    { 
+	cout << "Enemy spawned\n"; 
+    }
+};
+
+
+
+Order of output when Enemy e;  ????
+
+
+
+
+
+
+
+
+1. Output ??
+--------
+
+class Base 
+{
+private:
+    int x = 10;
+public:
+    int y = 20;
+};
+
+
+class Derived : public Base 
+{
+public:
+    void display() 
+    {
+        cout << x << " " << y;
+    }
+};
+
+int main() 
+{
+    Derived d;
+    d.display();
+    return 0;
+}
+
+
+
+
+
+2. Predict the output.
+
+class A 
+{
+public:
+    A() 
+	{ 
+	cout << "A "; 
+	}
+};
+
+class B : public A 
+{
+public:
+    B() 
+	{ 
+	cout << "B "; 
+	}
+};
+
+class C : public B 
+{
+public:
+    C() 
+	{ 
+	cout << "C "; 
+	}
+};
+
+int main() 
+{
+    C obj;
+    return 0;
+}
+
+
+
+
+
+
+
+In C++, when an object of a derived class is created. First base class constructors are called in order of inheritance from top to bottom. Then the constructor of the actual class is executed.
+
+
+
+
+
+3. What will happen here? Will it compile? Why/why not?
+
+class A 
+{
+public:
+    void show() 
+	{ 
+	cout << "A "; 
+	}
+};
+
+class B : public A {};
+class C : public A {};
+class D : public B, public C {};
+
+int main() 
+{
+    D obj;
+    obj.show();
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+D inherits from both B and C and both of them inherit from A.
+D ends up with two copies of A one from B, and one from C.
+When call obj.show() the compiler doesn't know whether its mean B::A::show() or C::A::show().
+
+
+obj.B::show();  
+
+or
+
+obj.C::show();
+
+
+Use virtual inheritance to share a single copy of A -
+
+class B : virtual public A {};
+
+class C : virtual public A {};
+
+
+Then D will have only one shared instance of A and the call obj.show()
+
+
+
+Virtual Base Classes
+--------------------
+
+Fixes the diamond problem seen in hybrid inheritance.
+
+
+class Entity 
+{
+public:
+    void update() 
+	{ 
+	cout << "Entity updating"; 
+	}
+};
+
+class Character : virtual public Entity {};
+
+class NPC : virtual public Entity {};
+
+class Trader : public Character, public NPC {};
+
+
+Can you call 
+
+Trader t; 
+t.update();   ?    Why?
+ 
+
+
+
+
+
+
+
+If we remove virtual from Character and NPC.
+we will get an ambiguity error because the compiler wouldn’t know which Entity::update() to call.
+
+

@@ -1,0 +1,1252 @@
+PONG GAME
+--------
+
+Pong is one of the earliest video games and originally released in 1972 and consists of one paddles and a bouncing ball. 
+
+The goal is to keep the ball in play by hitting it with the paddle and scoring when ball touches top of the wall.
+
+
+
+
+Basic Components of Pong Game
+-----------------------------
+
+Creating Game Window – RenderWindow.
+
+Paddles – Rectangular shapes controlled by player input.
+
+Ball – A circular shape that moves and bounces.
+
+Collision Detection – Checking when the ball hits a paddle or the window boundary.
+
+Scoring System – track of points.
+
+Game Loop – The main loop that updates positions and renders graphics.
+
+
+
+
+Step 1: Creating the Game Window using SFML
+------------------------------------------
+
+pong.cpp (main program)
+--------
+
+#include<SFML/Graphics.hpp>
+using namespace sf;
+
+int main() {
+
+	VideoMode vm(960,540); //Create a video mode object
+	
+	RenderWindow window(vm, "PONG GAME", Style::Fullscreen); //Create and open a window for the game
+
+	// Game Loop
+	// game listens to user input, responds accordingly
+	while(window.isOpen())
+	{	
+	   Event event;
+           while(window.pollEvent(even)) // pollEvent() retrieves one event at a time
+	   {
+	      if(event.type == Event::Closed)
+		{
+		  window.close();
+		}
+	    }
+ 	
+	window.clear(Color::Black); //Black screen window with title will appear.
+	window.display();
+	}
+	return 0;	
+}
+
+
+
+Step2 : Adding the bat at the bottom of the screen
+--------------------------------------------------
+
+Bat.h  (Declare all member variables and functions)
+------
+
+
+A bat (rectangle) will appear at the bottom of the screen.
+
+#pragma once
+#include <SFML/Graphics.hpp>
+using namespace sf;
+
+class Bat {
+
+    Vector2f m_Position; //2D vector with floating-point coordinates (Stores the (x, y) position of the bat)
+
+    RectangleShape m_Shape; //graphical representation of the bat
+
+public:
+
+//Initializes the bat’s position and shape when an object is created
+// startX: Initial horizontal position
+
+   Bat(float startX, float startY);
+
+// This function is used to retrieve the position of the RectangleShape (the Bat) in the game.
+// Where exactly is the bat located on the screen?
+// FloatRect, which is a rectangle that defines the bounds (position and size) of the shape.
+
+   FloatRect getPosition();
+
+
+   RectangleShape getShape();
+
+};
+
+
+
+
+Bat.cpp (Defining all member functions)
+-------
+
+#include "Bat.h"
+
+Bat::Bat(float startX, float startY)
+{
+ 	m_Position.x = startX; //Set the horizontal position
+ 	m_Position.y = startY; // vertical
+ 	m_Shape.setSize(sf::Vector2f(50, 5)); //Define bat size (50x5 pixels)
+ 	m_Shape.setPosition(m_Position); //Set bat's position on screen
+}
+
+// This function is used to retrieve the position of the RectangleShape (the Bat) in the game.
+// Where exactly is the bat located on the screen
+// FloatRect, which is a rectangle that defines the bounds (position and size) of the shape.
+// getGlobalBounds() provides the four corner coordinates of m_Shape.
+
+FloatRect Bat::getPosition() {
+    return m_Shape.getGlobalBounds();
+}
+
+// This function returns the RectangleShape object itself. To draw the object (bat) to the screen.
+
+RectangleShape Bat::getShape() {
+    return m_Shape;
+}
+
+
+
+pong.cpp
+--------
+
+#include "Bat.h"
+
+// Create the bat object at the bottom center of the screen
+//  / 2 : Centers horizontally.
+//  - 20 : Places it slightly above the bottom
+
+Bat bat(960 / 2, 540 - 20);
+
+window.clear();
+window.draw(bat.getShape());
+window.display();
+
+
+
+
+
+Step3 : Move bat left and right using arrow keys
+--------------------------------------------------
+
+Need to move bat left and right using arrow keys.
+
+
+Bat.h (Declarations)
+-----
+
+float m_Speed = 600.0f; //Controls how fast the bat moves
+
+bool m_MovingLeft = false; //Flags to track movement direction (motionless)
+
+bool m_MovingRight = false;
+
+public:
+
+// How can we accessing private members of the class
+// Set movement flags to true (moveLeft(),moveRight())
+// Bat is moving in that direction
+// stopping movement in the left direction
+
+void moveLeft();
+void moveRight();
+void stopLeft();
+void stopRight();
+
+// Moves the bat based on time (dt), speed, and direction
+void update(Time dt);
+
+
+Bat.cpp (Definitions)
+-------
+
+void Bat::moveLeft()
+{
+ 	m_MovingLeft = true; //the bat should move.
+}
+
+void Bat::moveRight()
+{
+ 	m_MovingRight = true;
+}
+
+void Bat::stopLeft()
+{
+ 	m_MovingLeft = false; //stopping movement.
+}
+
+void Bat::stopRight()
+{
+ 	m_MovingRight = false;
+}
+
+
+// Moves the bat left by decreasing the x-coordinate
+
+void Bat::update(Time dt)
+{
+    if (m_MovingLeft) {
+        m_Position.x -= m_Speed * dt.asSeconds(); //Moves Left
+    }
+    if (m_MovingRight) {
+        m_Position.x += m_Speed * dt.asSeconds(); //Moves Right
+    }
+
+    m_Shape.setPosition(m_Position); //updates the bat's position on the screen
+}
+
+
+
+pong.cpp
+--------
+
+int main() {
+    // RenderWindow window(vm, "Pong", Style::Fullscreen);
+    
+    Clock clock; -------
+
+    Bat bat(960 / 2, 540 - 20);
+
+    while (window.isOpen()) {
+        Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == Event::Closed) window.close();
+        }
+
+        // Handle input------------------
+        if (Keyboard::isKeyPressed(Keyboard::Left)) bat.moveLeft();
+        else bat.stopLeft();
+
+        if (Keyboard::isKeyPressed(Keyboard::Right)) bat.moveRight();
+        else bat.stopRight();
+
+        Time dt = clock.restart(); // Update delta time
+        
+// Moves the bat if the player is pressing left or right
+	bat.update(dt);
+
+        // Draw everything
+        window.clear();
+        window.draw(bat.getShape());
+        window.display();
+    }
+    return 0;
+}
+
+
+
+
+
+
+Step4 : Adding the ball
+-----------------------
+
+
+Ball.h
+------
+
+#pragma once
+#include <SFML/Graphics.hpp>
+using namespace sf;
+
+
+class Ball 
+{
+
+    Vector2f m_Position;
+    RectangleShape m_Shape;
+
+
+public:
+
+// constructor initializes the ball’s position and size
+    Ball(float startX, float startY);
+
+    FloatRect getPosition();
+    CircleShape getShape();
+};
+
+
+
+
+Ball.cpp
+--------
+
+#include "Ball.h"
+
+
+Ball::Ball(float startX, float startY) 
+{
+    m_Position.x = startX;
+    m_Position.y = startY;
+
+    m_Shape.setRadius(10); 
+
+    m_Shape.setPosition(m_Position);
+}
+
+
+FloatRect Ball::getPosition() 
+{
+    return m_Shape.getGlobalBounds();
+}
+
+
+// Returns the SFML shape to draw the ball
+
+CircleShape Ball::getShape()
+{	 return m_Shape;
+}
+
+
+
+
+pong.cpp
+--------
+
+#include "Ball.h"
+
+// Create the bat object at the bottom center of the screen
+//  / 2 : Centers horizontally.
+//  - 20 :  20 pixels above the bottom edge of the screen
+
+Bat bat(960 / 2, 540 - 20);
+
+// Create a ball (Created at the top-center of the screen)
+Ball ball(960 / 2, 0);
+
+
+window.clear();
+window.draw(bat.getShape());
+
+window.draw(ball.getShape());
+
+window.display();
+
+
+
+
+
+
+Step4 : The ball will start at the top center and move diagonally downward. Control the direction of the ball’s movement.
+---------------------------
+
+
+
+Ball.h (Declaring variables)
+
+----------------------
+
+
+float m_Speed = 300.0f; //Speed of the ball (300 pixels per second)
+
+
+// two variables control the direction of the ball’s movement in both the horizontal (X-axis) and vertical (Y-axis) directions.
+// controls the ball’s left-right movement. Horizontal movement direction
+// Positive (+) values mean the ball moves to the right.
+// Negative (-) values mean the ball moves to the left.
+// The ball's movement is determined by two factors:
+
+
+float m_DirectionX = 0.2f; // ball moves to the right.
+
+
+
+// This controls the ball’s up-down movement.
+// Positive (+) values mean the ball moves downward. Vertical movement direction
+// Negative (-) values mean the ball moves upward.
+// ball starts moving down at the beginning.
+
+
+float m_DirectionY = 0.2f; // the ball moves downward. 
+
+
+public: 
+
+// Returns the horizontal direction of movement
+// No Need for Speed Adjustments in Y-Direction
+//ball speed may increase horizontally to make the game harder
+
+    float getXVelocity();
+
+// Ball Rebounding Functions (What Happens When the Ball Bounces?)
+// change the ball’s direction when it collides with different surfaces
+
+// Called when the ball hits the left or right walls; Change horizontal direction
+
+
+void reboundSides();
+
+
+
+// Called when the ball hits the bat or top of the screen; Change vertical direction
+
+void reboundBatOrTop();
+
+
+
+// Called when the ball misses the bat and hits the bottom; resets the ball (player loses a life).
+
+void reboundBottom();
+
+
+
+//ball updates its position in the update() function
+
+void update(Time dt);
+
+
+
+
+
+Ball.cpp (Defining all the functions)
+-----------------------------------
+
+
+// Returns the X-direction movement of the ball
+// m_DirectionX is positive when moving right, negative when moving left
+
+
+float Ball::getXVelocity()
+{
+    return m_DirectionX;
+}
+
+
+// If the ball is moving right (+X), it will start moving left (-X) and vice versa
+
+void Ball::reboundSides()
+{
+    m_DirectionX = -m_DirectionX;
+}
+
+// If the ball is moving down (+Y), it starts moving up (-Y) and vice versa
+
+void Ball::reboundBatOrTop()
+{
+    m_DirectionY = -m_DirectionY;
+}
+
+// Resets the ball’s position to the top center (at x = 500, y = 0)
+// Flips the Y-direction to make the ball start moving downward again
+
+void Ball::reboundBottom()
+{
+    m_Position.y = 0;     // Reset ball to the top
+    m_Position.x = 500;   // Reset to a default X position
+    m_DirectionY = -m_DirectionY;  // Reverse vertical direction
+}
+
+
+// Moves the ball by updating m_Position.x and m_Position.y.
+
+void Ball::update(Time dt)
+{
+    // Update the ball's position
+    m_Position.y += m_DirectionY * m_Speed * dt.asSeconds();
+    m_Position.x += m_DirectionX * m_Speed * dt.asSeconds();
+    
+    // Move the ball
+    m_Shape.setPosition(m_Position);
+}
+
+
+
+pong.cpp
+----------
+else
+	{
+    	bat.stopRight();
+	}
+
+--------------------
+
+Time dt = clock.restart(); // Update delta time
+
+// Moves the bat if the player is pressing left or right
+bat.update(dt);
+
+
+// Moves the ball based on its velocity and direction
+ball.update(dt); ------
+
+
+
+
+
+Step5 : Creates a Text object (hud) for displaying the score and lives.
+--------------------------------------------------------------
+
+pong.cpp
+--------
+
+int score = 0; --
+int lives = 3;
+
+Bat bat(1920 / 2, 1080 - 20);
+Ball ball(1920 / 2, 0);
+
+-----------------------------
+	Text hud;
+	
+// Loads a font (DS-DIGI.ttf) from the "fonts" folder
+// Sets the font size, color, and position.
+
+	Font font;
+ 	font.loadFromFile("fonts/DS-DIGI.ttf");
+ 
+	// Set the font to our retro-style
+ 	hud.setFont(font);
+
+	// Make it nice and big
+ 	hud.setCharacterSize(75);
+ 
+	// Choose a color
+ 	hud.setFillColor(Color::White);
+
+// 20 pixels from the left edge of the window
+// 20 pixels from the top edge of the window
+ 	hud.setPosition(20, 20); 
+ 
+ ------------------
+Already added :
+	Clock clock;
+
+	// Game Loop
+	// The game loop runs as long as the window is open.
+
+ 	while (window.isOpen())
+ 	{
+ 	
+ 	// 1. Handle the player input
+
+	// Checks for events, such as closing the window (Event::Closed).
+	Event event;
+	while (window.pollEvent(event))
+	{
+
+	else
+	{
+    	bat.stopRight();
+	}
+
+	Time dt = clock.restart();
+	bat.update(dt);
+	ball.update(dt);
+--------------------------------------------------
+	// Update HUD (Score & Lives)
+	// Formats the score and lives into a text string.
+
+	std::stringstream ss; // used to build a text string dynamically
+	ss << "Score:" << score << " Lives:" << lives;
+	hud.setString(ss.str());
+
+ 	
+ 	// 3. Draw the bat, the ball and the HUD
+
+	window.clear();
+	window.draw(hud);
+	window.draw(bat.getShape()); //Draws the bat
+	window.draw(ball.getShape());
+	window.display(); 
+
+
+
+
+Step6 : Collision Detection and Handling
+------------------------------------------
+
+pong.cpp
+--------
+
+
+Event			Condition				Action
+--------------------------------------------------------------------------------------
+
+Hits Left/Right Wall	x < 0 or x + width > window width	Ball bounces (reverse X)
+
+
+Hits Top Wall		y < 0					Ball bounces (reverse Y) & score increases
+
+
+Hits Bat		intersects(bat)				Ball bounces (reverse Y)
+
+
+Hits Bottom		y > window height			Lose a life and reset position
+
+
+
+
+
+
+// Ball Hits the Left or Right Wall
+// reverses the X direction, making it bounce off the walls
+
+// Left boundary of the screen is x = 0 (ball.getPosition().left = 0)
+// x = -5    -5 < 0	Yes (Bounce)
+
+if (ball.getPosition().left < 0 ||
+    ball.getPosition().left + ball.getPosition().width > window.getSize().x)
+{
+    ball.reboundSides();
+}
+
+
+
+// If the ball hits the top wall, Score a point 
+// The top of the screen is at y = 0.
+
+if (ball.getPosition().top < 0)
+{
+    ball.reboundBatOrTop();
+    score++;
+}
+
+
+
+
+	
+// Ball Hits the Bat (Player Keeps Playing)
+// intersects() checks if the ball collides with the bat.
+
+
+
+if (ball.getPosition().intersects(bat.getPosition())) 
+{
+    // Change vertical direction
+    ball.reboundBatOrTop();
+}
+
+
+
+
+
+// Ball Hits the Bottom of the Screen (Lose a Life)
+// If the ball collides with the bat, it bounces back up.
+
+
+Ball Bottom Position	Bat Top Position	Condition	Collision?
+y = 750			y = 750			Overlaps	Yes (Bounce)
+
+
+
+if (ball.getPosition().top > window.getSize().y)
+{
+    // Reset ball position
+    ball.reboundBottom();
+    
+    //std::cout << "Ball fell below! Losing a life." << std::endl;
+
+    // Decrease player's lives
+    lives--;
+
+    // When lives gets to 0, the score will reset, reset the game
+    if (lives < 1) {
+	std::cout << "Game Over! Resetting score & lives." << std::endl;
+        score = 0;
+        lives = 3;
+    }
+}
+
+
+
+
+
+------------------------------------------------------
+
+Extra : Sound Added
+
+#include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include "Bat.h"
+#include "Ball.h"
+#include <sstream>
+
+using namespace sf;
+
+int main() {
+    // Create window
+    VideoMode vm(1920, 1080);
+    RenderWindow window(vm, "Pong", Style::Fullscreen);
+
+    int score = 0;
+    int lives = 3;
+
+    // Create bat and ball
+    Bat bat(1920 / 2, 1080 - 50);
+    Ball ball(1920 / 2, 0);
+
+    // Load font
+    Font font;
+    font.loadFromFile("fonts/DS-DIGI.ttf");
+
+    // Create HUD
+    Text hud;
+    hud.setFont(font);
+    hud.setCharacterSize(75);
+    hud.setFillColor(Color::White);
+    hud.setPosition(20, 20);
+
+    // Load sounds
+    SoundBuffer hitBuffer, wallBuffer, loseBuffer;
+    hitBuffer.loadFromFile("sounds/hit.wav");
+    wallBuffer.loadFromFile("sounds/wall.wav");
+    loseBuffer.loadFromFile("sounds/lose.wav");
+
+    Sound hitSound(hitBuffer), wallSound(wallBuffer), loseSound(loseBuffer);
+
+    Clock clock;
+
+    while (window.isOpen()) {
+        // Handle events
+        Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == Event::Closed)
+                window.close();
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Escape)) window.close();
+        if (Keyboard::isKeyPressed(Keyboard::Left)) bat.moveLeft(); else bat.stopLeft();
+        if (Keyboard::isKeyPressed(Keyboard::Right)) bat.moveRight(); else bat.stopRight();
+
+        // Update game
+        Time dt = clock.restart();
+        bat.update(dt);
+        ball.update(dt);
+
+        std::stringstream ss;
+        ss << "Score:" << score << " Lives:" << lives;
+        hud.setString(ss.str());
+
+        // Collision handling
+        if (ball.getPosition().intersects(bat.getPosition())) {
+            ball.reboundBatOrTop();
+            hitSound.play();
+        }
+
+        if (ball.getPosition().left < 0 || ball.getPosition().left + ball.getPosition().width > window.getSize().x) {
+            ball.reboundSides();
+            wallSound.play();
+        }
+
+        if (ball.getPosition().top > window.getSize().y) {
+            ball.reboundBottom();
+            lives--;
+            loseSound.play();
+
+            if (lives < 1) {
+                score = 0;
+                lives = 3;
+            }
+        }
+
+        if (ball.getPosition().top < 0) {
+            ball.reboundBatOrTop();
+            score++;
+        }
+
+        // Draw everything
+        window.clear();
+        window.draw(hud);
+        window.draw(bat.getShape());
+        window.draw(ball.getShape());
+        window.display();
+    }
+
+    return 0;
+}
+
+
+
+----------------------------------------
+exact position of bat and ball
+
+#include <iostream> // Required for printing
+
+// Inside the game loop
+std::cout << "Ball Position: (" << ball.getPosition().left << ", " 
+          << ball.getPosition().top << ")" << std::endl;
+
+std::cout << "Ball Width: " << ball.getPosition().width << std::endl;
+std::cout << "Ball Height: " << ball.getPosition().height << std::endl;
+
+std::cout << "Window Width: " << window.getSize().x << std::endl;
+std::cout << "Window Height: " << window.getSize().y << std::endl;
+
+std::cout << "Bat Position: (" << bat.getPosition().left << ", " 
+          << bat.getPosition().top << ")" << std::endl;
+
+
+Ball Position: (left,top) = (100, 200)
+
+Ball Size:
+Ball Width: 10
+Ball Height: 10
+
+Window Width: 1920  window.getSize().x
+Window Height: 1080
+
+Bat Position: (850, 1000)
+
+
+-----------------------
+
+
+// Get positions
+float ballBottom = ball.getPosition().top + ball.getPosition().height; 
+float batTop = bat.getPosition().top;
+
+// Print positions for debugging
+std::cout << "Ball Bottom Position: " << ballBottom << std::endl;
+std::cout << "Bat Top Position: " << batTop << std::endl;
+
+
+
+
+
+
+
+
+
+Problem 1: Changing the Ball’s Rebound Angle
+---------------------------------------------
+
+when the ball hits the bat, it bounces straight up. 
+
+Modify the logic so that -
+
+    1. If the ball hits the left side of the bat, it moves leftward.
+
+    2. If the ball hits the right side of the bat, it moves rightward.
+
+    3. If it hits the center, it moves straight up.
+
+
+
+
+
+
+Ball.cpp
+------
+
+
+
+calculate the center of the bat and the center of the ball.
+
+find the distance from the center of the bat where the ball made contact.
+
+normalize this distance into a range from -0.5 (far left) to 0.5 (far right).
+
+set the horizontal direction (m_DirectionX) based on this value.
+
+ball’s vertical direction reverses so it bounces upward.
+
+
+
+
+
+
+
+
+void Ball::reboundBatOrTop(FloatRect batPosition) 
+{
+    [Find the center of the bat]
+
+    float batCenter = batPosition.left + (batPosition.width / 2);
+    
+
+    [Find the center of the ball]
+
+    float ballCenter = m_Position.x + (m_Shape.getRadius());
+
+
+    [Calculate the difference between ball center and bat center]
+
+    float distanceFromCenter = ballCenter - batCenter;
+
+
+    [Normalize the distance and set a new X direction]
+
+    float normalizedFactor = distanceFromCenter / (batPosition.width / 2);
+
+
+    [Adjust X direction based on where the ball hit the bat]
+
+    m_DirectionX = normalizedFactor * 0.5f; 
+    
+
+    [Reverse Y direction to move upward]
+
+    m_DirectionY = -m_DirectionY;
+}
+
+
+
+
+pong.cpp
+-------
+
+if (ball.getPosition().intersects(bat.getPosition())) 
+{
+    ball.reboundBatOrTop(bat.getPosition());
+}
+
+
+
+
+
+
+
+
+
+
+Problem 2: Implement a Pause and Resume Feature
+-----------------------------------------------
+
+Allow the player to pause the game when pressing the Spacebar and resume when pressing it again. 
+Ensure the game freezes during pause (ball and bat do not move).
+
+
+
+
+
+
+
+pong.cpp
+-------
+
+
+bool isPaused = false;  
+
+
+
+[When the Spacebar is pressed; the game should toggle between paused and running states]
+
+
+if (event.type == Event::KeyPressed && event.key.code == Keyboard::Space) 
+{
+    isPaused = !isPaused;  
+}
+
+
+
+Time dt = clock.restart();
+
+
+
+[isPaused == true; bat and ball stop moving (no updates)]
+
+
+if (!isPaused) 
+{  
+    bat.update(dt);
+    ball.update(dt);
+}
+
+
+window.clear();
+window.draw(bat.getShape());
+window.draw(ball.getShape());
+
+
+if (isPaused) 
+{
+    Text pauseText;
+    pauseText.setFont(font);
+    pauseText.setCharacterSize(75);
+    pauseText.setFillColor(Color::White);
+    pauseText.setString("PAUSED");
+    pauseText.setPosition(400, 200);
+    window.draw(pauseText);
+}
+
+
+window.display();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Practical Question 1:
+--------------------
+
+Create a basic SFML application where a ball moves automatically across the screen and a paddle is placed on one side. Your task is to detect when the ball hits the paddle. When a collision is detected, print a message like “Paddle Hit!” on the screen. If the ball misses the paddle and goes off-screen, display “Missed!” and stop the ball.
+
+
+
+
+
+
+
+
+
+
+Bat.h
+-----
+
+#include <SFML/Graphics.hpp>
+using namespace sf;
+
+class Bat 
+{
+    RectangleShape shape;
+
+public:
+    Bat(float startX, float startY);
+
+    RectangleShape getShape();
+    FloatRect getBounds();
+};
+
+
+
+
+
+Bat.cpp
+------
+
+
+#include "Bat.h"
+
+Bat::Bat(float startX, float startY) 
+{
+    shape.setSize(Vector2f(100, 10));
+    shape.setFillColor(Color::White);
+    shape.setPosition(startX, startY);
+}
+
+
+RectangleShape Bat::getShape() 
+{
+    return shape;
+}
+
+
+FloatRect Bat::getBounds() 
+{
+    return shape.getGlobalBounds();
+}
+
+
+
+
+Ball.h
+------
+
+#include <SFML/Graphics.hpp>
+using namespace sf;
+
+class Ball 
+{
+    CircleShape shape;
+    Vector2f m_velocity;
+    float speed;
+
+public:
+    Ball(float startX, float startY);
+    
+    
+    CircleShape getShape();
+    FloatRect getBounds();
+
+    void update(float dt);
+
+    void bounce_X();
+    void bounce_Y();
+
+   
+};
+
+
+
+
+
+Ball.cpp
+-------
+
+
+#include "Ball.h"
+
+
+Ball::Ball(float startX, float startY) 
+{
+    shape.setRadius(10.f);
+    shape.setFillColor(Color::Green);
+    shape.setPosition(startX, startY);
+
+    m_velocity = Vector2f(200.f, 200.f);
+}
+
+
+
+CircleShape Ball::getShape() 
+{
+    return shape;
+}
+
+
+
+FloatRect Ball::getBounds() 
+{
+    return shape.getGlobalBounds();
+}
+
+
+
+void Ball::update(float dt) 
+{
+    Vector2f pos = shape.getPosition();
+
+    if (pos.x <= 0 || pos.x + shape.getRadius() * 2 >= 800)
+
+        m_velocity.x = -m_velocity.x;
+
+
+    if (pos.y <= 0)
+        m_velocity.y = -m_velocity.y;
+
+    shape.move(velocity * dt);
+}
+
+
+void Ball::bounce_X() 
+{
+    velocity.x = -velocity.x;
+}
+
+
+void Ball::bounce_Y() 
+{
+    velocity.y = -velocity.y;
+}
+
+
+
+
+pong.cpp
+-------
+
+
+#include <SFML/Graphics.hpp>
+#include <iostream>
+
+#include "Ball.h"
+#include "Bat.h"
+
+using namespace sf;
+
+int main() 
+{
+
+    VideoMode vm(1920, 1080);
+    RenderWindow window(vm, "Class based Paddle Collision");
+
+
+    Ball ball(400, 300);
+
+    Bat bat(350, 580);
+
+
+    Font font;
+    font.loadFromFile("komicap.ttf")
+
+    Text message;
+    message.setFont(font);
+    message.setCharacterSize(24);
+    message.setFillColor(Color::Red);
+    message.setPosition(10, 10);
+
+    std::string msgText = "";
+
+    Clock clock;
+
+
+    while (window.isOpen()) 
+    {
+        Event event;
+        while (window.pollEvent(event)) 
+        {
+            if (event.type == Event::Closed)
+                window.close();
+        }
+
+
+        float dt = clock.restart().asSeconds();
+
+        ball.update(dt);
+
+
+        [Detect collision with BAt]
+
+        if (ball.getBounds().intersects(bat.getBounds())) 
+        {
+            ball.bounce_Y();
+            msgText = "Paddle Hit";
+        }
+
+        message.setString(msgText);
+
+        window.clear();
+
+        window.draw(paddle.getShape());
+        window.draw(ball.getShape());
+
+        window.draw(message);
+
+        window.display();
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+Practical Question 2:
+--------------------
+
+Create a simple 2D scene using SFML where a player rectangle can move left or right using arrow keys. Another rectangle represents an obstacle. Detect if the player overlaps with the obstacle and display a message like “Collision Detected!” If there is no overlap, clear the message.
+
+
