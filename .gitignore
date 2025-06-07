@@ -33,8 +33,9 @@
 
 # Specific Ignorance
 timber
+onOff
 GPWC++/Classwork/SFML-3.0.0
 /.ipynb_checkpoints
 /bin
-*.txt
 *-checkpoint.ipynb
+/GodLink
